@@ -6,7 +6,7 @@ const { createApp } = require('./src/app');
 const lost = require('./scripts/check-assets').missing();
 if (lost.length) console.warn(`WARNING: ${lost.length} files are missing in public/ (e.g. ${lost.slice(0, 3).join(', ')}). Upload the folder again; check with: node scripts/check-assets.js`);
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 3100);
 const host = process.env.HOST || '0.0.0.0';
 const db = open(process.env.DB_FILE);
 const seeded = require('./src/game/world').seedBarbarians(db);

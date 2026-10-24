@@ -5,7 +5,7 @@ Es gibt keine LAN-Sperre; jeder mit Zugang zur URL kann spielen.
 
 ## Lokal starten
     npm install
-    npm start          # http://localhost:3000
+    npm start          # http://localhost:3100
     npm run dev        # startet bei Code-Änderungen neu
     npm test           # Tests
     npx eslint .       # Lint
@@ -54,10 +54,10 @@ Die Dauer des Angriffsschutzes wird mit dem Faktor mitgeskaliert.
 ## Auf aaPanel
 1. App Store: **Node.js-Versionsmanager** installieren, Node **22.5 oder neuer** wählen (wegen `node:sqlite`).
 2. Projektordner hochladen (ohne `node_modules` und `data/`), dort `npm install --omit=dev` ausführen.
-3. Website → Node-Projekt hinzufügen: Startbefehl `npm start`, Port z. B. `3000`.
-   Umgebungsvariablen: `PORT=3000`, optional `HOST=127.0.0.1` (nur über den Proxy erreichbar),
+3. Website → Node-Projekt hinzufügen: Startbefehl `npm start`, Port z. B. `3100`.
+   Umgebungsvariablen: `PORT=3100`, optional `HOST=127.0.0.1` (nur über den Proxy erreichbar),
    `REGISTRATION=closed` (oder im Admin-Bereich sperren), `TW_LANG=de` (Standardsprache).
-4. Domain mit Reverse-Proxy auf `127.0.0.1:3000` und SSL (Let's Encrypt) einrichten. Das Session-Cookie wird dann automatisch als `Secure` gesetzt.
+4. Domain mit Reverse-Proxy auf `127.0.0.1:3100` und SSL (Let's Encrypt) einrichten. Das Session-Cookie wird dann automatisch als `Secure` gesetzt.
 5. Backup: nur der Ordner `data/` (SQLite-Datei `twlan.db`).
 6. Bilder fehlen (404)? Dann ist meist der Upload unvollständig (viele kleine Dateien in `public/graphic`). Im Projektordner
    `node scripts/check-assets.js` ausführen, es listet fehlende Dateien; beim Start steht dieselbe Warnung im Log.
