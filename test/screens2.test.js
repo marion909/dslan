@@ -786,3 +786,25 @@ test('admin can change world rules live and reset them', async () => {
     assert.equal(cfg.world.attackSelf, before.attackSelf);
   } finally { Object.assign(cfg.world, before); require('../src/settings').apply(s.db); s.close(); }
 });
+
+test('admin can set a village to maximum', async () => {
+  const s = await start();
+  try {
+    const admin = await s.client().register('alice');
+    const f = require('../src/game/formulas'); const v = require('../src/game/village'); const cfg = require('../src/config');
+    await admin.post('main', { action: 'upgrade_building' }, { id: 'wood' }).catch(() => {});
+    s.db.prepare("INSERT INTO build_queue (village_id, building, level, start_at, finish_at) VALUES (?, 'wood', 2, 0, 9999999999)").run(admin.vid);
+    const r = await admin.raw(`/admin/villages/${admin.vid}/max`, { method: 'POST', form: { h: admin.csrf } });
+    assert.equal(r.status, 302);
+    const levels = v.getBuildings(s.db, admin.vid);
+    for (const id of f.BUILDING_IDS) assert.equal(levels[id], cfg.buildings[id].maxLevel, id);
+    assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM build_queue WHERE village_id = ?').get(admin.vid).n, 0, 'queue emptied');
+    assert.equal(s.db.prepare('SELECT wood FROM village WHERE id = ?').get(admin.vid).wood, v.storageMax(levels), 'storage filled');
+    assert.equal((await admin.screen('overview')).status, 200, 'village still renders');
+    for (const screen of ['main', 'barracks', 'stable', 'garage', 'smith', 'snob', 'wall', 'market', 'statue', 'storage', 'farm', 'wood', 'hide', 'place']) {
+      const page = await admin.screen(screen);
+      assert.equal(page.status, 200, screen);
+      hasNot(page.html, /<%|undefined|\[object Object\]|NaN/, `${screen} at max`);
+    }
+  } finally { s.close(); }
+});

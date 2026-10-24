@@ -26,6 +26,19 @@ function getQueue(db, villageId) {
   return db.prepare('SELECT * FROM build_queue WHERE village_id = ? ORDER BY finish_at, id').all(villageId);
 }
 
+// Admin tool: every building to its highest level, the build queue emptied and the storage filled up.
+function maxOut(db, villageId) {
+  transaction(db, () => {
+    db.prepare('DELETE FROM build_queue WHERE village_id = ?').run(villageId);
+    for (const id of f.BUILDING_IDS) {
+      db.prepare('INSERT INTO village_building (village_id, building, level) VALUES (?,?,?) ON CONFLICT(village_id, building) DO UPDATE SET level = excluded.level')
+        .run(villageId, id, cfg.buildings[id].maxLevel);
+    }
+    const full = storageMax(getBuildings(db, villageId));
+    db.prepare('UPDATE village SET wood = ?, stone = ?, iron = ?, res_updated_at = ? WHERE id = ?').run(full, full, full, Date.now() / 1000, villageId);
+  });
+}
+
 function storageMax(levels) {
   return f.capacity('storage', 'wood', levels.storage);
 }
@@ -243,5 +256,5 @@ function createVillage(db, { userId, name, x, y }) {
 module.exports = {
   RES, getBuildings, getQueue, queuedLevels, processQueue, canBuild, enqueueBuild, cancelBuild, enqueueDestroy, reorderBuild,
   queueFactor, scaled, loyaltyAt, setLoyalty,
-  storageMax, popMax, popUsed, unitPop, hourlyProduction, rate, missingRequirements, villagePoints, createVillage,
+  maxOut, storageMax, popMax, popUsed, unitPop, hourlyProduction, rate, missingRequirements, villagePoints, createVillage,
 };

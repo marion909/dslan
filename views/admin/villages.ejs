@@ -13,6 +13,7 @@
   <tr>
     <td><%= v.id %></td><td><%= v.name %></td><td><%= v.x %>|<%= v.y %></td><td><%= v.owner || 'Barbaren' %></td><td><%= number(v.points) %></td><td><%= Math.floor(v.wood) %> / <%= Math.floor(v.stone) %> / <%= Math.floor(v.iron) %></td>
     <td>
+      <form class="inline" method="post" action="/admin/villages/<%= v.id %>/max" onsubmit="return confirm('Alle Gebäude dieses Dorfes auf Maximalstufe setzen und den Speicher füllen?');"><input type="hidden" name="h" value="<%= csrf %>" /><button>Auf Max setzen</button></form><br />
       <form class="inline" method="post" action="/admin/villages/<%= v.id %>/rename"><input type="hidden" name="h" value="<%= csrf %>" /><input name="name" value="<%= v.name %>" size="14" /><button>Umbenennen</button></form><br />
       <form class="inline" method="post" action="/admin/villages/<%= v.id %>/resources"><input type="hidden" name="h" value="<%= csrf %>" /> +<input name="wood" size="5" placeholder="Holz" /><input name="stone" size="5" placeholder="Lehm" /><input name="iron" size="5" placeholder="Eisen" /><button>Geben</button></form><br />
       <form class="inline" method="post" action="/admin/villages/<%= v.id %>/owner"><input type="hidden" name="h" value="<%= csrf %>" /><input name="owner" value="<%= v.owner || '' %>" size="14" placeholder="leer = Barbaren" /><button>Besitzer setzen</button></form>

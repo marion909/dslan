@@ -163,6 +163,11 @@ function install(app, db) {
     const id = Number(req.params.id);
     const v = db.prepare('SELECT * FROM village WHERE id = ?').get(id);
     if (!v) return back(res, 'villages', 'Dorf nicht gefunden.');
+    if (req.params.action === 'max') {
+      village.maxOut(db, id);
+      ranking.invalidate();
+      return back(res, 'villages', `${v.name}: alle Gebäude auf Maximalstufe, Speicher gefüllt.`);
+    }
     if (req.params.action === 'remove') {
       if (v.user_id) return back(res, 'villages', 'Dörfer von Spielern werden hier nicht entfernt – setze zuerst den Besitzer auf „leer“ oder lösche den Spieler.');
       const r = world.removeBarbarians(db, [id]);
