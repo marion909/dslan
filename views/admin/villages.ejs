@@ -1,0 +1,24 @@
+<h2>Dörfer</h2>
+<form method="get"><input name="q" value="<%= q %>" placeholder="Dorf, Spieler oder x|y" size="30" /> <label><input type="checkbox" name="barb" value="1"<%= barb ? ' checked' : '' %> /> nur Barbarendörfer</label> <button>Suchen</button></form>
+<form method="post" action="/admin/villages/clear" class="inline" style="margin: 8px 0" onsubmit="return confirm('Alle Barbarendörfer im Umkreis von ' + this.radius.value + ' Feldern um ' + this.center.value + ' entfernen?');">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  Barbarendörfer im Umkreis entfernen: Mitte <input name="center" size="8" placeholder="500|500" /> Radius <input name="radius" size="4" placeholder="10" /> <button>Entfernen</button>
+</form>
+<form method="post" action="/admin/villages/refill" class="inline" style="margin: 0 0 8px" onsubmit="return confirm('Alle freien Plätze der Karte wieder mit Barbarendörfern füllen?');">
+  <input type="hidden" name="h" value="<%= csrf %>" /> <button>Barbarendörfer neu auffüllen</button> <span class="twl-small">legt auf allen freien, bebaubaren Feldern wieder Barbarendörfer an (bestehende bleiben).</span>
+</form>
+<table>
+  <tr><th>ID</th><th>Dorf</th><th>Koordinaten</th><th>Besitzer</th><th>Punkte</th><th>Rohstoffe</th><th>Aktionen</th></tr>
+  <% for (const v of rows) { %>
+  <tr>
+    <td><%= v.id %></td><td><%= v.name %></td><td><%= v.x %>|<%= v.y %></td><td><%= v.owner || 'Barbaren' %></td><td><%= number(v.points) %></td><td><%= Math.floor(v.wood) %> / <%= Math.floor(v.stone) %> / <%= Math.floor(v.iron) %></td>
+    <td>
+      <form class="inline" method="post" action="/admin/villages/<%= v.id %>/rename"><input type="hidden" name="h" value="<%= csrf %>" /><input name="name" value="<%= v.name %>" size="14" /><button>Umbenennen</button></form><br />
+      <form class="inline" method="post" action="/admin/villages/<%= v.id %>/resources"><input type="hidden" name="h" value="<%= csrf %>" /> +<input name="wood" size="5" placeholder="Holz" /><input name="stone" size="5" placeholder="Lehm" /><input name="iron" size="5" placeholder="Eisen" /><button>Geben</button></form><br />
+      <form class="inline" method="post" action="/admin/villages/<%= v.id %>/owner"><input type="hidden" name="h" value="<%= csrf %>" /><input name="owner" value="<%= v.owner || '' %>" size="14" placeholder="leer = Barbaren" /><button>Besitzer setzen</button></form>
+      <% if (!v.owner) { %><br /><form class="inline" method="post" action="/admin/villages/<%= v.id %>/remove" onsubmit="return confirm('Barbarendorf entfernen?');"><input type="hidden" name="h" value="<%= csrf %>" /><button>Barbarendorf entfernen</button></form><% } %>
+    </td>
+  </tr>
+  <% } %>
+  <% if (!rows.length) { %><tr><td colspan="7">Nichts gefunden.</td></tr><% } %>
+</table>

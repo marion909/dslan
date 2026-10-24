@@ -1,0 +1,37 @@
+<h2><%= t('game.menu.overview.title') %></h2>
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const m of modes) { %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 80px"><a href="/game.php?village=<%= vid %>&amp;screen=overview_villages&amp;mode=<%= m %><%= groupId ? '&group=' + groupId : '' %>"><%= t('game.menu.overview.' + m) %></a></td>
+  <% } %>
+</tr></tbody></table>
+<% if (!groupsPage && groups.length) { %>
+<p>Gruppe:
+  <a href="<%= base %>"<%- !groupId ? ' style="font-weight:bold"' : '' %>>Alle</a>
+  <% for (const g of groups) { %> &middot; <a href="<%= base %>&amp;group=<%= g.id %>"<%- g.id === groupId ? ' style="font-weight:bold"' : '' %>><%= g.name %></a><% } %>
+</p>
+<% } %>
+
+<% if (groupsPage) { %>
+<form method="post" action="<%= base %>&amp;action=group_add" style="margin-bottom: 10px">
+  <input type="hidden" name="h" value="<%= csrf %>" /> Neue Gruppe: <input type="text" name="name" maxlength="30" /> <input type="submit" class="btn" value="Anlegen" />
+</form>
+<% for (const g of groups) { %>
+<form method="post" action="<%= base %>&amp;action=group_set" style="margin-bottom: 10px">
+  <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2"><%= g.name %></th></tr>
+    <tr><td><% for (const v of all) { %><label style="display:inline-block; min-width: 200px"><input type="checkbox" name="villages" value="<%= v.id %>"<%= members[g.id].has(v.id) ? ' checked' : '' %> /> <%= v.name %> (<%= v.x %>|<%= v.y %>)</label><% } %></td>
+      <td width="160"><input type="submit" class="btn" value="Speichern" /></td></tr>
+  </tbody></table>
+</form>
+<form method="post" action="<%= base %>&amp;action=group_delete" style="margin: -6px 0 12px"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" /><input type="submit" class="btn" value="Gruppe „<%= g.name %>“ löschen" onclick="return confirm('Gruppe löschen?');" /></form>
+<% } %>
+<% if (!groups.length) { %><p class="inactive">Noch keine Gruppen.</p><% } %>
+<% } else { %>
+<table class="vis overview_table" width="100%"><tbody>
+  <tr><% for (const c of table.cols) { %><th><%- typeof c === 'string' ? c.replace(/[<>&]/g, '') : c.html %></th><% } %></tr>
+  <% for (const r of table.rows) { %><tr><% for (const c of r) { %><td><%- c && typeof c === 'object' ? c.html : String(c).replace(/[<>&]/g, (x) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[x])) %></td><% } %></tr><% } %>
+  <% if (!table.rows.length) { %><tr><td colspan="<%= table.cols.length %>" class="inactive">Keine Einträge.</td></tr><% } %>
+  <% if (table.foot) { %><tr><% for (const c of table.foot) { %><th><%= c %></th><% } %></tr><% } %>
+</tbody></table>
+<% } %>

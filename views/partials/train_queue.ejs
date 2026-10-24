@@ -1,0 +1,32 @@
+<% if (events.length) { const next = events[0]; %>
+<div class="current_prod_wrapper">
+  <div id="replace_<%= building %>">
+    <table class="vis"><tr>
+      <th width="250"><%= t('game.train.queue.next', { unit: unitName(next.unit, 1) }) %></th>
+      <th><span class="timer"><%= duration(Math.min(next.per_unit, next.finish_at - now)) %></span></th>
+    </tr></table>
+    <div class="trainqueue_wrap" id="trainqueue_wrap_<%= building %>">
+      <table class="vis"><tbody id="trainqueue_<%= building %>" class="ui-sortable">
+        <tr>
+          <th width="150"><%= t('game.train.queue.train') %></th>
+          <th width="120"><%= t('game.train.queue.duration') %></th>
+          <th width="150"><%= t('game.train.queue.completion') %></th>
+          <th width="100"><%= t('game.train.queue.cancelTitle') %></th>
+          <th style="background:none !important;"></th>
+        </tr>
+        <% events.forEach((e, i) => { const cls = i === 0 ? 'lit-item' : ''; %>
+        <tr class="<%= i === 0 ? 'lit' : 'sortable_row' %>">
+          <td class="<%= cls %>"><%= e.amount %> <%= unitName(e.unit, e.amount) %></td>
+          <td class="<%= cls %>"><% if (i === 0) { %><span class="timer"><%= duration(e.finish_at - now) %></span><% } else { %><%= duration(e.per_unit * e.amount) %><% } %></td>
+          <td class="<%= cls %>"><%= clock(e.finish_at) %></td>
+          <td class="<%= cls %>"><% if (i === 0) { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=<%= building %>&amp;action=finish&amp;h=<%= csrf %>"><%= ppCost(e.finish_at - now) %> PP: sofort</a> <% } %><a class="btn btn-cancel" onclick="return TrainOverview.cancelOrder(<%= e.id %>)" href="#"><%= t('game.train.queue.cancel') %></a></td>
+          <td class="<%= cls %>" style="background:none !important;"></td>
+        </tr>
+        <% }) %>
+      </tbody></table>
+    </div>
+    <div style="font-size: 7pt;"><%= t('game.train.queue.cancelBack') %></div>
+    <br>
+  </div>
+</div>
+<% } %>

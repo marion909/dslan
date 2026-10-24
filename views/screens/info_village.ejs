@@ -1,0 +1,28 @@
+<h2><%= target.name %> (<%= target.x %>|<%= target.y %>) K<%= target.continent %></h2>
+<table class="vis" width="420"><tbody>
+  <tr><td width="140">Punkte:</td><td><%= number(target.points) %></td></tr>
+  <tr><td>Besitzer:</td><td><% if (target.user_id) { %><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= target.user_id %>"><%= target.owner %></a><% if (target.ally) { %> (<a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= target.ally.id %>"><%= target.ally.tag %></a>)<% } %><% } else { %>Barbaren<% } %></td></tr>
+  <tr><td>Zustimmung:</td><td><%= target.loyalty %>%</td></tr>
+  <% if (target.reservation) { %><tr><td>Reserviert:</td><td class="warn">von <%= target.reservation.owner %></td></tr><% } %>
+  <tr><td><%= t('buildingPlace.duration') %>:</td><td><%= duration(target.seconds) %> <span class="twl-small">(<%= target.distance.toFixed(1) %> Felder, Speerträger)</span></td></tr>
+</tbody></table>
+<p>
+  <% if (!target.own) { %>
+  <a class="btn" href="/game.php?village=<%= vid %>&amp;screen=place&amp;target=<%= target.id %>"><img src="/graphic/command/attack.png" alt=""> <%= t('buildingPlace.attack') %> / <%= t('buildingPlace.support') %></a>
+  <% if (target.user_id) { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=send&amp;target=<%= target.id %>">Rohstoffe schicken</a><% } %>
+  <% } %>
+  <% if (!target.own && me.ally_id) { %>
+  <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= target.id %>&amp;action=reserve">
+    <input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="<%= target.reservation ? 'Reservierung aufheben' : 'Für Stamm reservieren' %>" />
+  </form>
+  <% } %>
+  <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= target.id %>&amp;action=<%= isFav ? 'fav_del' : 'fav_add' %>">
+    <input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="<%= isFav ? 'Aus Favoriten entfernen' : 'Zu Favoriten' %>" />
+  </form>
+</p>
+<% if (target.own) { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= target.id %>&amp;action=note">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="420"><tbody><tr><th>Dorfnotiz</th></tr><tr><td><textarea name="note" rows="5" cols="55" maxlength="2000"><%= target.note %></textarea><br /><input type="submit" class="btn" value="Speichern" /></td></tr></tbody></table>
+</form>
+<% } %>

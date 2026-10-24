@@ -1,0 +1,64 @@
+<%- head %>
+<br />
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const [m, label] of [['send', 'Rohstoffe schicken'], ['buy', 'Angebote'], ['own_offer', 'Eigene Angebote']]) { %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 120px"><a href="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=<%= m %>"><%= label %></a></td>
+  <% } %>
+</tr></tbody></table>
+<p>Händler: <b><%= free %></b> / <%= total %> (je <%= number(capacity) %> Rohstoffe)</p>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+
+<% if (mode === 'send') { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=send&amp;action=send">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Rohstoffe schicken</th></tr>
+    <% for (const r of physicalRes) { %><tr><td><span class="icon header <%= r %>"></span> <%= t('game.' + r) %></td><td><input type="text" name="<%= r %>" size="7" /> <span class="twl-small">(<%= Math.floor(village[r]) %>)</span></td></tr><% } %>
+    <tr><td>Ziel (x|y)</td><td><input type="text" name="coord" value="<%= target %>" placeholder="500|500" size="10" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="OK" /></td></tr>
+  </tbody></table>
+</form>
+<% } else if (mode === 'buy') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Angebot</th><th>Gesucht</th><th>Von</th><th>Entfernung</th><th>Anzahl</th><th></th></tr>
+  <% for (const o of offers) { %>
+  <tr>
+    <td><span class="icon header <%= o.sell_res %>"></span> <%= number(o.sell_amount) %></td>
+    <td><span class="icon header <%= o.buy_res %>"></span> <%= number(o.buy_amount) %></td>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= o.village_id %>"><%= o.name %> (<%= o.x %>|<%= o.y %>)</a><%= o.owner ? ' – ' + o.owner : '' %></td>
+    <td><%= o.distance.toFixed(1) %></td><td><%= o.multi %></td>
+    <td>
+      <form method="post" action="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=buy&amp;action=accept" style="display:inline">
+        <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="offer" value="<%= o.id %>" />
+        <input type="text" name="count" value="1" size="2" /> <input type="submit" class="btn" value="Annehmen" />
+      </form>
+    </td>
+  </tr>
+  <% } %>
+  <% if (!offers.length) { %><tr><td colspan="6" class="inactive">Keine Angebote in Reichweite.</td></tr><% } %>
+</tbody></table>
+<% } else { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Biete</th><th>Suche</th><th>Anzahl</th><th>Max. Entfernung</th><th></th></tr>
+  <% for (const o of own) { %><tr><td><span class="icon header <%= o.sell_res %>"></span> <%= number(o.sell_amount) %></td><td><span class="icon header <%= o.buy_res %>"></span> <%= number(o.buy_amount) %></td><td><%= o.multi %></td><td><%= o.max_distance || '∞' %></td>
+    <td><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=own_offer&amp;action=cancel_offer&amp;id=<%= o.id %>&amp;h=<%= csrf %>">Zurückziehen</a></td></tr><% } %>
+  <% if (!own.length) { %><tr><td colspan="5" class="inactive">Keine eigenen Angebote.</td></tr><% } %>
+</tbody></table>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=market&amp;mode=own_offer&amp;action=offer" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Neues Angebot</th></tr>
+    <tr><td>Ich biete</td><td><input type="text" name="sell_amount" size="6" /> <select name="sell_res"><% for (const r of physicalRes) { %><option value="<%= r %>"><%= t('game.' + r) %></option><% } %></select></td></tr>
+    <tr><td>Ich suche</td><td><input type="text" name="buy_amount" size="6" /> <select name="buy_res"><% for (const r of physicalRes) { %><option value="<%= r %>"><%= t('game.' + r) %></option><% } %></select></td></tr>
+    <tr><td>Anzahl</td><td><input type="text" name="multi" value="1" size="3" /></td></tr>
+    <tr><td>Max. Entfernung</td><td><input type="text" name="max_distance" size="3" /> <span class="twl-small">0 = unbegrenzt</span></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Anbieten" /></td></tr>
+  </tbody></table>
+</form>
+<% } %>
+<% if (trades.length) { %>
+<h3>Unterwegs</h3>
+<table class="vis" width="100%"><tbody>
+  <% for (const c of trades) { %><tr><td><%= c.outgoing ? '→' : '←' %> <%= c.other.name %> (<%= c.other.x %>|<%= c.other.y %>): <% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= c.loot[r] || 0 %> <% } %></td><td><span class="timer"><%= duration(c.arrive_at - now) %></span></td></tr><% } %>
+</tbody></table>
+<% } %>

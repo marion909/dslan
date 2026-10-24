@@ -1,0 +1,12 @@
+<h2>Übersicht</h2>
+<div class="grid">
+  <% for (const [label, key] of [['Spieler','users'],['Gesperrt','banned'],['Spielerdörfer','villages'],['Barbarendörfer','barbarians'],['Stämme','allies'],['Befehle unterwegs','commands'],['Berichte','reports'],['Nachrichten','messages'],['Aktive Sitzungen','sessions']]) { %>
+  <div class="card"><b><%= number(stats[key]) %></b><%= label %></div>
+  <% } %>
+</div>
+<table>
+  <tr><th>Spielgeschwindigkeit</th><td><%= speed %>x (Faktor <%= mult %>)</td></tr>
+  <tr><th>Laufzeit</th><td><%= Math.floor(uptime / 3600) %> h <%= Math.floor(uptime / 60) % 60 %> min</td></tr>
+  <tr><th>Node.js</th><td><%= node %></td></tr>
+  <tr><th>Datenbank</th><td><%= (dbBytes / 1048576).toFixed(1) %> MB</td></tr>
+</table>

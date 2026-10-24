@@ -1,0 +1,83 @@
+<h2><%= t('game.report.title') %></h2>
+<% const link = (extra) => `/game.php?village=${vid}&screen=report${extra}`; %>
+<table class="no_spacing" width="100%"><tbody><tr>
+<td valign="top">
+  <table class="vis modemenu" width="120"><tbody>
+    <% for (const m of ['all', 'attack', 'defense', 'support', 'trade', 'other', 'forwarded', 'public', 'filter']) { %>
+    <tr><td<%- mode === m && !folder ? ' class="selected"' : '' %> style="min-width: 100px"><a href="<%= link('&mode=' + m) %>"><%= m === 'public' ? t('game.report.navi.public') : m === 'filter' ? t('game.report.navi.filter') : t('game.report.navi.' + m) %></a></td></tr>
+    <% } %>
+    <% for (const f of folders) { %><tr><td<%- folder && folder.id === f.id ? ' class="selected"' : '' %>><a href="<%= link('&mode=folder&folder=' + f.id) %>">📁 <%= f.name %> <span class="twl-small">(<%= f.count %>)</span></a></td></tr><% } %>
+  </tbody></table>
+  <form method="post" action="<%= link('&mode=' + mode + '&action=folder_add') %>" style="margin-top: 6px">
+    <input type="hidden" name="h" value="<%= csrf %>" /><input type="text" name="name" size="10" maxlength="30" placeholder="Neuer Ordner" /><input type="submit" class="btn" value="+" />
+  </form>
+</td>
+<td valign="top" width="100%">
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 6px"><%= message %></div><% } %>
+
+<% if (mode === 'filter') { %>
+<form method="post" action="<%= link('&mode=filter&action=filter_save') %>">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th>Diese Berichte nicht mehr erhalten</th></tr>
+    <% for (const [key, label] of [['support', 'Unterstützungen'], ['trade', 'Handel'], ['other', 'Sonstiges (z. B. abgewehrte Späher)'], ['attack', 'Angriffe (eigene)'], ['defense', 'Verteidigung']]) { %>
+    <tr><td><label><input type="checkbox" name="hide" value="<%= key %>"<%= filter.includes(key) ? ' checked' : '' %> /> <%= label %></label><% if (key === 'defense' || key === 'attack') { %> <span class="twl-small">(nicht empfohlen)</span><% } %></td></tr>
+    <% } %>
+    <tr><td><input type="submit" class="btn" value="Speichern" /> <span class="twl-small">Das gilt für neue Berichte, bestehende bleiben erhalten.</span></td></tr>
+  </tbody></table>
+</form>
+
+<% } else if (!view) { %>
+<% if (folder) { %><p><b>Ordner „<%= folder.name %>“</b> &middot; <form method="post" style="display:inline" action="<%= link('&mode=folder&folder=' + folder.id + '&action=folder_delete') %>" onsubmit="return confirm('Ordner löschen? Die Berichte kommen zurück in den Posteingang.');"><input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="Ordner löschen" /></form></p><% } %>
+<form method="post" action="<%= link('&mode=' + mode + (folder ? '&folder=' + folder.id : '') + '&action=process') %>">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table id="report_list" class="vis" width="100%"><tbody>
+    <tr><th width="20"><input type="checkbox" onclick="$('#report_list input[name=ids]').prop('checked', this.checked)" /></th><th><%= t('game.report.subject') %></th><th><%= t('game.report.received') %></th></tr>
+    <% for (const r of reports) { %>
+    <tr>
+      <td><input type="checkbox" name="ids" value="<%= r.id %>" /></td>
+      <td style="overflow:hidden">
+        <div class="nowrap float_right" style="margin-top: 2px"><img src="/graphic/command/<%= r.type === 'support' ? 'support' : r.type === 'trade' ? 'return' : 'attack' %>.png" alt=""></div>
+        <img src="/graphic/dots/<%= r.color %>.png" alt="">
+        <a href="<%= link('&mode=' + mode + (folder ? '&folder=' + folder.id : '') + '&view=' + r.id) %>"><%= r.title %></a>
+        <% if (!r.is_read) { %>(<%= t('game.report.new') %>)<% } %><% if (r.forwarded_by) { %> <span class="twl-small">(von <%= r.forwarded_by %>)</span><% } %><% if (r.public_token) { %> <span class="twl-small">🔗</span><% } %>
+      </td>
+      <td class="nowrap"><%= dateText(r.time) %></td>
+    </tr>
+    <% } %>
+    <% if (!reports.length) { %><tr><td colspan="3" class="inactive">Keine Berichte vorhanden.</td></tr><% } %>
+  </tbody></table>
+  <% if (reports.length) { %>
+  <p>
+    <select name="op">
+      <option value="delete">Löschen</option><option value="read">Als gelesen markieren</option>
+      <% for (const f of folders) { if (!folder || folder.id !== f.id) { %><option value="move_<%= f.id %>">Verschieben nach „<%= f.name %>“</option><% } } %>
+      <% if (folder) { %><option value="move_0">Zurück in den Posteingang</option><% } %>
+    </select>
+    <input type="submit" class="btn" value="Ausführen" />
+  </p>
+  <% } %>
+</form>
+
+<% } else { %>
+<table class="vis" width="470"><tbody><tr>
+  <td align="center"><a href="<%= link('&mode=' + mode + (folder ? '&folder=' + folder.id : '') + '&action=del_one&id=' + view.id + '&h=' + csrf) %>">Löschen</a></td>
+  <td align="center"><a href="<%= link('&mode=' + mode + (folder ? '&folder=' + folder.id : '')) %>">Zur Liste</a></td>
+  <td align="center">
+    <form method="post" style="display:inline" action="<%= link('&mode=' + mode + '&view=' + view.id + '&action=' + (view.public_token ? 'unpublish' : 'publish')) %>"><input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="<%= view.public_token ? 'Nicht mehr öffentlich' : 'Öffentlich machen' %>" /></form>
+  </td>
+</tr></tbody></table>
+<% if (view.public_token) { %><p class="twl-small">Öffentlicher Link (jeder damit kann den Bericht lesen): <input type="text" readonly size="48" value="<%= baseUrl %>/report/<%= view.public_token %>" onclick="this.select()" /></p><% } %>
+<form method="post" action="<%= link('&mode=' + mode + '&view=' + view.id + '&action=forward&id=' + view.id) %>" style="margin: 0 0 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" /> Weiterleiten an: <input type="text" name="to" size="14" /> <input type="submit" class="btn" value="Senden" />
+  <% if (folders.length) { %> &nbsp; <select name="folder_move"><option value="">Ordner …</option><% for (const f of folders) { %><option value="<%= f.id %>"><%= f.name %></option><% } %></select><% } %>
+</form>
+<% if (folders.length) { %>
+<form method="post" action="<%= link('&mode=' + mode + '&view=' + view.id + '&action=process') %>" style="margin: 0 0 8px"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="ids" value="<%= view.id %>" />
+  <select name="op"><% for (const f of folders) { %><option value="move_<%= f.id %>">Verschieben nach „<%= f.name %>“</option><% } %><option value="move_0">Zurück in den Posteingang</option></select> <input type="submit" class="btn" value="OK" />
+</form>
+<% } %>
+<% if (view.forwarded_by) { %><p class="twl-small">Weitergeleitet von <%= view.forwarded_by %></p><% } %>
+<%- include('../partials/report_detail') %>
+<% } %>
+</td></tr></tbody></table>

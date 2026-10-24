@@ -1,0 +1,8 @@
+<form id="market-confirm-form" action="#" method="post">
+  <input type="hidden" name="target" value="<%= target.id %>" />
+  <% for (const r of physicalRes) { %><input type="hidden" name="<%= r %>" value="<%= res[r] %>" /><% } %>
+  <h3>Rohstoffe an <%= target.name %> (<%= target.x %>|<%= target.y %>) schicken?</h3>
+  <p><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= res[r] %> &nbsp;<% } %></p>
+  <p>Händler: <%= merchants %> &middot; Dauer: <%= duration(seconds) %></p>
+  <input type="submit" class="btn" value="Senden" />
+</form>

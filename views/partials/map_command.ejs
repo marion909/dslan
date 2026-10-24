@@ -1,0 +1,25 @@
+<h3><%= t('buildingPlace.command') %> → <%= target.name %> (<%= target.x %>|<%= target.y %>)</h3>
+<form id="units_form" action="#" method="post">
+  <input type="hidden" name="target" value="<%= target.id %>" />
+  <table><tbody><tr>
+    <% for (const col of columns) { %>
+    <td valign="top"><table class="vis" width="100%"><tbody>
+      <% for (const u of col) { %>
+      <tr><td class="nowrap">
+        <img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt="">
+        <input id="unit_input_<%= u %>" name="<%= u %>" type="text" style="width: 40px" class="unitsInput">
+        <a href="javascript:insertUnit($('#unit_input_<%= u %>'), <%= home[u] %>)">(<%= home[u] %>)</a>
+      </td></tr>
+      <% } %>
+    </tbody></table></td>
+    <% } %>
+  </tr></tbody></table>
+  <br />
+  <input class="attack btn btn-attack btn-target-action" name="attack" type="submit" value="<%= t('buildingPlace.attack') %>">
+  <% if (target.user_id) { %><input class="support btn btn-support btn-target-action" name="support" type="submit" value="<%= t('buildingPlace.support') %>"><% } %>
+  <a href="#" onclick="selectAllUnits(true); return false;"><%= t('buildingPlace.all') %></a>
+</form>
+<script type="text/javascript">
+  var command_target_widget = { clicked_button: 'attack' };
+  $('#units_form .btn-target-action').click(function () { command_target_widget.clicked_button = this.name; });
+</script>

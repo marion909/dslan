@@ -1,0 +1,8 @@
+<table width="100%" id="overview_buildqueue" class="vis">
+  <% queue.forEach((q, i) => { %>
+  <tr class="queueRow" style="height:50px">
+    <td width="40px" align="center"><img width="40" src="/graphic/big_buildings/<%= buildingImage(q.building, q.level, 'big_buildings') %>" alt="<%= buildingName(q.building) %>" /></td>
+    <td><%= buildingName(q.building) %> (<%= t('building.level', { x: q.level }) %>)<br/><span class="<%= i === 0 ? 'timer ' : '' %>small"><%= duration(q.finish_at - now) %></span></td>
+  </tr>
+  <% }) %>
+</table>

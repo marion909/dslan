@@ -1,0 +1,92 @@
+/* TWLan-node additions on top of the original game styles */
+.twl-notice {
+  position: relative;
+  margin: 6px auto;
+  padding: 6px 34px 6px 34px;
+  background: #f4e4bc;
+  border: 1px solid #c1a264;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #000;
+}
+.twl-notice .twl-notice-icon {
+  position: absolute; left: 8px; top: 5px;
+  width: 16px; height: 16px; line-height: 16px;
+  border: 2px solid #3a2a10; border-radius: 50%;
+  font: bold 12px/16px Georgia, serif; text-align: center; color: #3a2a10; background: #fff7e0;
+}
+.twl-notice .twl-notice-close {
+  position: absolute; right: 10px; top: 2px;
+  color: #c00; font-size: 20px; font-weight: bold; text-decoration: none; cursor: pointer;
+}
+.twl-notice a.twl-link { font-weight: bold; }
+#overviewtable td.narrow { width: 190px; }
+#overviewtable .widget h4 .twl-toggle { float: right; cursor: pointer; margin-top: 1px; }
+.twl-small { font-size: 11px; }
+.twl-welcome { padding: 8px 10px; line-height: 1.5; }
+.twl-world-badge {
+  display: inline-block; padding: 3px 14px; margin-right: 8px; font-weight: bold;
+  background: #3a2a10; color: #f4e4bc; border-radius: 3px 3px 0 0;
+}
+
+/* header buttons next to resources */
+.twl-iconbtn { padding: 2px 5px !important; }
+.twl-iconbtn .icon.header { margin: 0 !important; }
+
+/* floating quickbar toggle, top-left of the content column */
+#twl-quickbar-toggle {
+  position: absolute; left: -48px; margin-top: 4px; width: 34px; height: 30px; line-height: 30px;
+  text-align: center; background: #f4e4bc; border: 1px solid #c1a264; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.35);
+}
+#twl-quickbar-toggle .icon.header { vertical-align: middle; }
+#mainContent { position: relative; }
+
+/* overview widgets */
+.widget h4 { position: relative; padding-right: 26px; }
+.widget h4 .twl-toggle {
+  position: absolute; right: 4px; top: 3px; width: 14px; height: 14px; margin: 0; float: none;
+  background: #f4e4bc; border: 1px solid #7d510f; box-sizing: border-box; padding: 2px;
+}
+.twl-plus { float: right; width: 11px; height: 11px; margin-top: 2px; opacity: .7; }
+
+/* village switcher drop-down */
+#twl-villages {
+  position: absolute; z-index: 50; left: 0; margin-top: 34px; max-width: 840px; max-height: 360px; overflow: auto;
+  display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 12px; background: #f4e4bc; border: 1px solid #c1a264; border-radius: 3px; box-shadow: 0 3px 10px rgba(0,0,0,.45);
+}
+#twl-villages .twl-vm-col { min-width: 200px; }
+#twl-villages h5 { margin: 0 0 4px; font-size: 12px; border-bottom: 1px solid #c1a264; }
+#twl-villages a { display: block; padding: 1px 0; }
+#twl-villages a.twl-current { font-weight: bold; color: #000; }
+
+/* ---- narrow screens (phones): one fluid column instead of the 1000px desktop frame ---- */
+@media (max-width: 800px) {
+  html, body { min-width: 0 !important; }
+  #main_layout { width: 100% !important; min-width: 0 !important; }
+  #main_layout > tbody > tr > td.bg_left, #main_layout > tbody > tr > td.bg_right,
+  #main_layout > tbody > tr > td.bg_leftborder, #main_layout > tbody > tr > td.bg_rightborder,
+  #main_layout > tbody > tr > td.bg_bottomleft, #main_layout > tbody > tr > td.bg_bottomright { display: none; }
+  td.maincell { width: 100% !important; max-width: 0; }
+  #contentContainer, #contentContainer .content-border, #contentContainer table.main { width: 100% !important; }
+  #contentContainer, #contentContainer > tbody, #contentContainer > tbody > tr, #contentContainer > tbody > tr > td,
+  #contentContainer .content-border, #contentContainer .content-border > tbody, #contentContainer .content-border > tbody > tr, #contentContainer .content-border > tbody > tr > td { display: block; max-width: 100%; }
+  #contentContainer table.main { display: block; overflow-x: auto; max-width: 100%; }
+  #main_layout td.topbar.left, #main_layout td.topbar.right { display: none; }
+  #main_layout td.topbar.center { max-width: 0; width: 100%; }
+  #topContainer { overflow-x: auto; white-space: nowrap; }
+  #topTable { width: auto; }
+  #quickbar_outer, #quickbar_inner { table-layout: fixed; width: 100%; }
+  #quickbar_outer ul.quickbar li { white-space: normal; }
+  #quickbar_outer ul.quickbar { display: flex; flex-wrap: wrap; gap: 2px 8px; padding: 2px 6px; }
+  #header_info, #header_info > tbody, #header_info > tbody > tr { display: block; }
+  #header_info > tbody > tr > td { display: inline-block; vertical-align: top; margin: 2px 0; }
+  #header_info > colgroup { display: none; }
+  #overviewtable, #overviewtable > tbody, #overviewtable > tbody > tr, #overviewtable td { display: block; width: auto !important; }
+  #overviewtable td.narrow { width: auto; }
+  #overviewtable .widget { max-width: 100%; }
+  #twl-quickbar-toggle { left: 4px; top: -2px; position: relative; display: inline-block; }
+  #twl-villages { position: fixed; left: 8px; right: 8px; max-width: none; }
+  .vis, table.vis { max-width: 100%; }
+  input[type=text], input[type=password], select, textarea { max-width: 100%; box-sizing: border-box; }
+  #footer #linkContainer { white-space: normal; padding: 4px; }
+}

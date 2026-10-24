@@ -1,0 +1,36 @@
+<% const kindIcon = (c) => (c.type === 'return' ? 'back' : c.type === 'support' ? 'support' : 'attack');
+   const kindLabel = (c) => (c.type === 'return' ? 'Rückkehr' : c.type === 'support' ? t('buildingPlace.support') : t('buildingPlace.attack')); %>
+<% if (out.length) { %>
+<table class="vis" width="100%">
+  <tr><th><%= t('buildingPlace.ownCommands') %></th><th><%= t('buildingPlace.duration') %></th><th><%= t('buildingPlace.arrival') %></th><th></th></tr>
+  <% for (const c of out) { %>
+  <tr class="nowrap">
+    <td>
+      <img src="/graphic/command/<%= kindIcon(c) %>.png" alt="">
+      <a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= c.type === 'return' ? c.from_village : c.to_village %>"><%= kindLabel(c) %> → <%= c.label %> (<%= c.x %>|<%= c.y %>)</a>
+      <% for (const [u, n] of Object.entries(c.units)) { %><span class="twl-small">&nbsp;<%= n %>&times;<%= unitName(u, n) %></span><% } %>
+      <% if (c.type === 'return' && c.loot && Object.values(c.loot).some((n) => n > 0)) { %><span class="twl-small">&nbsp;(Beute: <%= physicalRes.map((r) => c.loot[r] || 0).join('/') %>)</span><% } %>
+    </td>
+    <td><span class="timer"><%= duration(c.arrive_at - now) %></span></td>
+    <td><%= clock(c.arrive_at) %></td>
+    <td><% if (c.type !== 'return') { %><a class="btn" href="<%= base %>&amp;action=cancel&amp;id=<%= c.id %>&amp;h=<%= csrf %>"><%= t('buildingMain.cancel') %></a><% } %></td>
+  </tr>
+  <% } %>
+</table>
+<% } %>
+<% if (incoming.length) { %>
+<table class="vis" width="100%" style="margin-top:6px">
+  <tr><th><%= t('buildingPlace.foreignCommands') %></th><th><%= t('buildingPlace.arrival') %></th></tr>
+  <% for (const c of incoming) { %>
+  <tr class="nowrap"><td><img src="/graphic/command/<%= c.type === 'support' ? 'support' : 'attack' %>.png" alt=""> <%= c.label %> (<%= c.x %>|<%= c.y %>)<%= c.owner ? ' – ' + c.owner : '' %></td><td><span class="timer"><%= duration(c.arrive_at - now) %></span> &middot; <%= clock(c.arrive_at) %></td></tr>
+  <% } %>
+</table>
+<% } %>
+<% if (trades.length) { %>
+<table class="vis" width="100%" style="margin-top:6px">
+  <tr><th>Händler</th><th><%= t('buildingPlace.arrival') %></th></tr>
+  <% for (const c of trades) { %>
+  <tr class="nowrap"><td><%= c.outgoing ? '→' : '←' %> <%= c.label %> (<%= c.x %>|<%= c.y %>): <% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= c.loot[r] || 0 %> <% } %></td><td><span class="timer"><%= duration(c.arrive_at - now) %></span></td></tr>
+  <% } %>
+</table>
+<% } %>

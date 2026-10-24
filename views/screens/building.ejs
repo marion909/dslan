@@ -1,0 +1,50 @@
+<%- head %>
+<% if (level > 0) { %><br />
+<% if (kind === 'res') { %>
+<table class="vis" cellspacing="1" cellpadding="3"><tbody>
+  <tr><th><%= t('buildingRes.prod') %></th><th><%= t('buildingRes.amountPerHour') %></th><% if (hasNext) { %><th><%= t('buildingRes.amountPerHourLvl', { lvl: level + 1 }) %></th><% } %></tr>
+  <% for (const p of rows) { %>
+  <tr><td><img src="/graphic/<%= p.res %>.png" title="<%= t('game.' + p.res) %>" alt=""> <%= t('buildingRes.baseProd') %></td><td><%= number(p.local) %></td><% if (hasNext) { %><td class="inactive"><%= number(p.nextLocal) %></td><% } %></tr>
+  <tr><td><img src="/graphic/<%= p.res %>.png" title="<%= t('game.' + p.res) %>" alt=""> <%= t('buildingRes.currentProd') %></td><td><b><%= number(p.total) %></b></td><% if (hasNext) { %><td class="inactive"><%= number(p.nextTotal) %></td><% } %></tr>
+  <% } %>
+</tbody></table>
+<% } else if (kind === 'storage') { %>
+<table class="vis" width="600px">
+  <tr><th><%= t('buildingStorage.capacity') %></th><th><%= t('buildingStorage.amountPerRes') %></th></tr>
+  <tr><td><%= t('buildingStorage.currentCapacity') %></td><td width="160px"><b><%= number(capacity) %></b></td></tr>
+  <% if (hasNext) { %><tr><td><%= t('buildingStorage.capacityAtLevel') %> <%= level + 1 %></td><td><b><%= number(nextCapacity) %></b></td></tr><% } %>
+</table><br />
+<table class="vis" width="600px">
+  <tr><th width="150" colspan="2"><%= t('buildingStorage.tableHead') %></th><th><%= t('buildingStorage.timeDescription') %></th></tr>
+  <% for (const f of fill) { %>
+  <tr>
+    <% if (f.full) { %><td colspan="3" class="error"><img src="/graphic/<%= f.res %>.png" title="<%= t('game.' + f.res) %>" alt="" /> <%= t('buildingStorage.isFull') %></td>
+    <% } else { %><td><img src="/graphic/<%= f.res %>.png" title="<%= t('game.' + f.res) %>" alt="" /></td><td><strong><%= clock(f.at) %></strong></td><td width="160px"><span class="timer"><%= duration(f.seconds) %></span></td><% } %>
+  </tr>
+  <% } %>
+</table>
+<% } else if (kind === 'hide') { %>
+<table class="vis"><tbody>
+  <tr><th colspan="2"><%= t('buildingHide.size') %></th></tr>
+  <tr><td width="200"><%= t('buildingHide.currentSize') %></td><td><b><%= number(hide) %></b> <%= t('buildingStorage.amountPerRes') %></td></tr>
+  <% if (hasNext) { %><tr><td><%= t('buildingHide.sizeAtLevel', { lvl: level + 1 }) %></td><td><b><%= number(nextHide) %></b> <%= t('buildingStorage.amountPerRes') %></td></tr><% } %>
+  <tr><td><%= t('buildingHide.plunderRes') %></td><td>
+    <% for (const p of plunder) { %><span class="icon header <%= p.res %>"></span> <%= number(p.amount) %> <% } %>
+  </td></tr>
+  <tr><td colspan="2"><%= t('buildingHide.marketPlunder') %></td></tr>
+</tbody></table>
+<% } else if (kind === 'church') { %>
+<table class="vis"><tbody>
+  <tr><th colspan="2">Glaube</th></tr>
+  <tr><td width="200">Wirkungsbereich</td><td><b><%= radius %></b> Felder</td></tr>
+  <% if (hasNext && nextRadius !== radius) { %><tr><td>Bei Stufe <%= level + 1 %></td><td><b><%= nextRadius %></b> Felder</td></tr><% } %>
+  <tr><td colspan="2">Truppen kämpfen nur im Wirkungsbereich deiner Kirche mit voller Stärke, sonst mit <%= noFaith %> %.</td></tr>
+</tbody></table>
+<% } else if (kind === 'farm') { %>
+<table class="vis"><tbody>
+  <tr><th colspan="2"><%= t('game.population') %></th></tr>
+  <tr><td width="200"><%= t('game.population') %></td><td><b><%= pop %></b> / <%= popMax %></td></tr>
+  <% if (hasNext) { %><tr><td><%= t('buildingStorage.capacityAtLevel') %> <%= level + 1 %></td><td><b><%= nextPopMax %></b></td></tr><% } %>
+</tbody></table>
+<% } %>
+<% } %>

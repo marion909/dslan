@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<%- include('partials/game_head') %>
+</head>
+<body id="ds_body" class=" scrollableMenu">
+<script type="text/javascript" src="/twl-notify.js"></script>
+<div class="top_bar"><div class="bg_left"></div><div class="bg_right"></div></div>
+<div class="top_shadow"></div>
+<div class="top_background"></div>
+<table id="main_layout" cellspacing="0">
+  <tr style="height:48px;">
+    <td class="topbar left"></td>
+    <td class="topbar center">
+      <div id="topContainer">
+        <table id="topTable" style="text-align:center;" cellspacing="0"><tr><td style="text-align:center;">
+          <table class="menu nowrap" style="white-space:nowrap;"><tr id="menu_row">
+            <td class="menu-side"></td>
+            <% for (const m of menu) { const base = `game.php?village=${vid}&amp;screen=${m.screen}`; %>
+            <td class="menu-item">
+              <a href="<%- base %>"><% if (menuIcons[m.key]) { %><span class="icon header <%= menuIcons[m.key] %>"></span> <% } %><%= m.key === 'premium' ? gameData.player.pp + ' +' : m.titleKey ? t(m.titleKey) : t(`game.menu.${m.key}.title`) %><% if (m.key === 'mails' && gameData.player.new_igm) { %> <span class="badge badge-mail">(<%= gameData.player.new_igm %>)</span><% } else if (m.key === 'reports' && gameData.player.new_report) { %> <span class="badge badge-report">(<%= gameData.player.new_report %>)</span><% } %></a>
+              <% if (m.items) { %>
+              <table cellspacing="0" class="menu_column">
+                <% for (const item of m.items) { %>
+                <tr><td class="menu-column-item"><a href="game.php?village=<%= vid %>&amp;screen=<%= item.screen || m.screen %><%- item.mode ? '&amp;mode=' + item.mode : '' %>"><%= t(item.label) %></a></td></tr>
+                <% } %>
+                <tr><td class="bottom"><div class="corner"></div><div class="decoration"></div></td></tr>
+              </table>
+              <% } %>
+            </td>
+            <% } %>
+            <td class="menu-item lpad"></td>
+            <td class="menu-item" id="topdisplay"><div class="bg">
+              <a href="game.php?village=<%= vid %>&amp;screen=ranking"><%= t('game.menu.ranking.title') %></a>
+              <div class="rank">(<span id="rank_rank"><%= gameData.player.rank_formatted %></span>.|<span id="rank_points"><%= gameData.player.points_formatted %></span> <%= t('game.menu.ranking.points') %>)</div>
+              <table cellspacing="0" class="menu_column">
+                <% for (const item of menu.rankingItems) { %>
+                <tr><td class="menu-column-item"><a href="game.php?village=<%= vid %>&amp;screen=ranking&amp;mode=<%= item.mode %>"><%= t(item.label) %></a></td></tr>
+                <% } %>
+                <tr><td class="bottom"><div class="corner"></div><div class="decoration"></div></td></tr>
+              </table>
+            </div></td>
+            <td class="menu-side"><img src="/graphic/loading.gif" id="loading_content" style="display:none" alt="" /></td>
+          </tr></table>
+        </td></tr></table>
+      </div>
+    </td>
+    <td class="topbar right"></td>
+  </tr>
+  <tr>
+    <td class="bg_left" id="SkyScraperAdCell"><div class="bg_left"></div></td>
+    <td class="maincell" id="mainContent" style="width: 850px;">
+      <a href="#" id="twl-quickbar-toggle" onclick="$('#quickbar_outer').toggle(); return false;" title="Schnellleiste"><span class="icon header overview_village"></span></a>
+      <% if (villageMenu) { %>
+      <div id="twl-villages" style="display:none">
+        <div class="twl-vm-col"><h5>Alle Dörfer</h5>
+          <% for (const v of villageMenu.all) { %><a href="<%- villageMenu.link(v.id) %>"<%- v.id === vid ? ' class="twl-current"' : '' %>><%= v.name %> <span class="twl-small">(<%= v.x %>|<%= v.y %>)</span></a><% } %>
+        </div>
+        <% for (const g of villageMenu.groups) { %><div class="twl-vm-col"><h5><%= g.name %></h5>
+          <% for (const v of g.villages) { %><a href="<%- villageMenu.link(v.id) %>"<%- v.id === vid ? ' class="twl-current"' : '' %>><%= v.name %> <span class="twl-small">(<%= v.x %>|<%= v.y %>)</span></a><% } %>
+        </div><% } %>
+      </div>
+      <% } %>
+      <table id="quickbar_outer" align="center" width="100%" cellspacing="0"><tr><td>
+        <table id="quickbar_inner" style="border-collapse:collapse;" width="100%">
+          <tr class="topborder"><td class="left"></td><td class="main"></td><td class="right"></td></tr>
+          <tr><td class="left"></td><td class="main">
+            <ul class="menu quickbar">
+              <% for (const [bid, screenName, label] of quickbar) { %>
+              <li><span><a href="/game.php?village=<%= vid %>&amp;screen=<%- screenName.replace(/&/g, '&amp;') %>"><% if (bid) { %><img src="/graphic/buildings/<%= bid %>.png" alt="" /><% } %><%= label %></a></span></li>
+              <% } %>
+            </ul>
+          </td><td class="right"></td></tr>
+          <tr class="bottomborder"><td class="left"></td><td class="main"></td><td class="right"></td></tr>
+          <tr><td class="shadow" colspan="3"><div class="leftshadow"></div><div class="rightshadow"></div></td></tr>
+        </table>
+      </td></tr></table>
+      <hr class="oldStyleOnly" />
+      <table id="header_info" align="center" width="100%" cellspacing="0">
+        <colgroup><col width="1%" /><col width="96%" /><col width="1%" /><col width="1%" /><col width="1%" /></colgroup>
+        <tr>
+          <td class="topAlign"><table class="header-border"><tr><td>
+            <table class="box menu nowrap"><tr id="menu_row2">
+              <% if (gameData.player.villages > 1) { %>
+              <td class="box-item icon-box arrowCell"><a id="village_switch_left" class="village_switch_link" href="game.php?<%- switchLink('p') %>" accesskey="a"><span class="arrowLeft"></span></a></td>
+              <td class="box-item icon-box arrowCell"><a id="village_switch_right" class="village_switch_link" href="game.php?<%- switchLink('n') %>" accesskey="d"><span class="arrowRight"></span></a></td>
+              <% } %>
+              <td style="white-space:nowrap;" id="menu_row2_village" class="box-item icon-box nowrap">
+                <a class="nowrap" href="game.php?village=<%= vid %>&amp;screen=overview"><span class="icon header village"></span><%= village.name %></a>
+              </td>
+              <td class="box-item"><b class="nowrap">(<%= village.x %>|<%= village.y %>) K<%= Math.floor(village.y / 100) %><%= Math.floor(village.x / 100) %></b></td>
+              <% if (villageMenu) { %>
+              <td class="box-item"><a href="#" id="open_groups" title="Dörfer" onclick="$('#twl-villages').toggle(); return false;"><span class="icon header arr_down"></span></a></td>
+              <% } %>
+            </tr></table>
+          </td></tr></table></td>
+          <td align="right" class="topAlign"></td>
+          <td align="right" class="topAlign"><table align="right" class="header-border menu_block_right"><tr><td>
+            <table class="box smallPadding" cellspacing="0" style="empty-cells:show;"><tr style="height:20px;">
+              <% let first = true; for (const res of physicalRes) { const v = gameData.village; const cls = v[res] >= v.storage_max ? 'warn' : (v[res] >= v.storage_max * 0.9 ? 'warn_90' : 'res'); %>
+              <td class="box-item<%= first ? ' icon-box firstcell' : '' %>"><a href="game.php?village=<%= vid %>&amp;screen=<%= res %>" title="<%= t('game.' + res) %>"><span class="icon header <%= res %>"></span></a></td>
+              <td class="box-item"><span id="<%= res %>" title="<%= Math.round(v[res + '_prod'] * 3600) %>" class="<%= cls %>"><%= v[res] %></span></td>
+              <% first = false; } %>
+              <td class="box-item icon-box"><a href="game.php?village=<%= vid %>&amp;screen=storage" title="<%= t('game.storage') %>"><span class="icon header ressources"></span></a></td>
+              <td class="box-item"><span id="storage"><%= gameData.village.storage_max %></span></td>
+            </tr></table>
+          </td></tr></table></td>
+          <td align="right" class="topAlign"><table class="header-border menu_block_right"><tr><td>
+            <table class="box smallPadding" cellspacing="0"><tr>
+              <td class="box-item icon-box firstcell"><a href="game.php?village=<%= vid %>&amp;screen=farm" title="<%= t('buildingFarm.name') %>"><span class="icon header population"></span></a></td>
+              <td class="box-item" align="center" style="margin:0;padding:0;"><span id="pop_current_label"><%= gameData.village.pop %></span>/<span id="pop_max_label"><%= gameData.village.pop_max %></span></td>
+            </tr></table>
+          </td></tr></table></td>
+          <td align="right" class="topAlign"><table class="header-border menu_block_right"><tr><td>
+            <table class="box" cellspacing="0"><tr>
+              <% headerIcons.forEach(([icon, link, title], i) => { %>
+              <td class="box-item<%= i === 0 ? ' firstcell' : '' %> twl-iconbtn"><a title="<%= title %>" href="<%= link %>"><span class="icon header <%= icon %>"></span></a></td>
+              <% }) %>
+            </tr></table>
+          </td></tr></table></td>
+        </tr>
+      </table>
+      <% for (const n of (notices || [])) { %>
+      <div class="twl-notice"><span class="twl-notice-icon">i</span><%- n %><a class="twl-notice-close" href="#" onclick="$(this).parent().remove(); return false;">&times;</a></div>
+      <% } %>
+      <table align="center" id="contentContainer" width="100%"><tr><td>
+        <table class="content-border" width="100%" cellspacing="0"><tr><td id="inner-border">
+          <table class="main" align="left"><tr><td id="content_value">
+            <% if (typeof error !== 'undefined' && error) { %><div class="error_box"><%= error %></div><% } %>
+            <div id="content_point"></div>
+            <%- content %>
+          </td></tr></table>
+        </td></tr></table>
+      </td></tr></table>
+      <p class="server_info"><%= t('game.servertime') %> <span id="serverTime"><%= clockNow %></span></p>
+    </td>
+    <td class="bg_right" id="SkyScraperAdCell2"><div class="bg_right"></div></td>
+  </tr>
+  <tr><td class="bg_leftborder"></td><td></td><td class="bg_rightborder"></td></tr>
+  <tr class="newStyleOnly"><td class="bg_bottomleft">&nbsp;</td><td class="bg_bottomcenter">&nbsp;</td><td class="bg_bottomright">&nbsp;</td></tr>
+</table>
+<div id="footer"><div id="footer_logo"></div><div id="linkContainer"><div id="footer_left">
+  <span class="twl-world-badge"><%= world.name %></span>
+  <a href="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=world"><%= t('game.menu.settings.world') === 'game.menu.settings.world' ? 'Welteinstellungen' : t('game.menu.settings.world') %></a> &nbsp;-&nbsp;
+  <a href="/game.php?village=<%= vid %>&amp;screen=help">Hilfe</a> &nbsp;-&nbsp;
+  <a href="/game.php?village=<%= vid %>&amp;screen=notes">Notizblock</a> &nbsp;-&nbsp;
+  <a href="/game.php?village=<%= vid %>&amp;screen=quests">Aufgaben</a> &nbsp;-&nbsp;
+  <% if (isAdmin) { %><a href="/admin/" target="_blank">Admin</a> &nbsp;-&nbsp;<% } %>
+  <a href="/page/view?mode=mobile&amp;back=<%= encodeURIComponent(`/game.php?village=${vid}&screen=overview`) %>">Mobile Ansicht</a> &nbsp;-&nbsp;
+  <a href="/page/logout" target="_top"><%= t('game.menu.logout') %></a>
+</div></div></div>
+<%- include('partials/game_foot') %>
+</body>
+</html>

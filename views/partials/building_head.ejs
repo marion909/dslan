@@ -1,0 +1,7 @@
+<table width="100%"><tr>
+  <td><img src="/graphic/big_buildings/<%= buildingImage(id, level, 'big_buildings') %>" alt="<%= buildingName(id) %>" /></td>
+  <td width="100%">
+    <h2><%= buildingName(id) %> (<%= level > 0 ? t('building.level', { x: level }) : t('building.noLevel') %>)</h2>
+    <%= description %>
+  </td>
+</tr></table>

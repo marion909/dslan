@@ -1,0 +1,27 @@
+<h2>Welt</h2>
+<h3>Automatische Backups</h3>
+<form method="post" action="/admin/backup/settings">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table>
+    <tr><th>Aktiv</th><td><label><input type="checkbox" name="enabled" value="1"<%= s.backupEnabled === '1' ? ' checked' : '' %> /> regelmäßig sichern</label></td></tr>
+    <tr><th>Alle</th><td><input type="number" name="hours" value="<%= s.backupHours %>" min="1" max="720" size="4" /> Stunden</td></tr>
+    <tr><th>Aufbewahren</th><td><input type="number" name="keep" value="<%= s.backupKeep %>" min="1" max="100" size="4" /> Sicherungen (die ältesten werden gelöscht)</td></tr>
+  </table>
+  <button>Speichern</button>
+</form>
+<form method="post" action="/admin/backup/now" style="margin-top:8px"><input type="hidden" name="h" value="<%= csrf %>" /><button>Jetzt sichern</button></form>
+<table>
+  <tr><th>Gespeichert in <code><%= dir %></code></th><th>Größe</th><th>Erstellt</th><th></th></tr>
+  <% for (const b of backups) { %><tr><td><%= b.name %></td><td><%= (b.bytes / 1048576).toFixed(1) %> MB</td><td><%= dateText(Math.floor(b.time)) %></td>
+    <td><form class="inline" method="post" action="/admin/backup/file"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="name" value="<%= b.name %>" /><button>Herunterladen</button></form></td></tr><% } %>
+  <% if (!backups.length) { %><tr><td colspan="4">Noch keine Sicherung.</td></tr><% } %>
+</table>
+<h3>Einmalige Sicherung herunterladen</h3>
+<p>Lädt eine konsistente Kopie der kompletten Datenbank herunter (Spieler, Dörfer, Berichte, Nachrichten). Das geht auch, während das Spiel läuft.</p>
+<form method="post" action="/admin/backup"><input type="hidden" name="h" value="<%= csrf %>" /><button>Backup herunterladen</button></form>
+<h3>Zurücksetzen</h3>
+<p>Setzt die Welt komplett zurück: alle Spieler (außer Admins), Dörfer, Stämme, Nachrichten und Berichte werden gelöscht und die Barbarendörfer neu erzeugt. <b>Das kann nicht rückgängig gemacht werden.</b> Sichere vorher den Ordner <code>data/</code>.</p>
+<form method="post" action="/admin/world/reset" onsubmit="return confirm('Wirklich die ganze Welt zurücksetzen?');">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <input name="confirm" placeholder="ZURÜCKSETZEN" /> <button class="danger">Welt zurücksetzen</button>
+</form>

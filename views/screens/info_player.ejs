@@ -1,0 +1,23 @@
+<h2><%= player.name %></h2>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2">Spielerprofil</th></tr>
+  <tr><td width="160">Rang</td><td><%= rank %></td></tr>
+  <tr><td>Punkte</td><td><%= number(points) %></td></tr>
+  <tr><td>Stamm</td><td><% if (player.ally_id) { %><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= player.ally_id %>"><%= player.ally_name %> (<%= player.ally_tag %>)</a><% } else { %>-<% } %></td></tr>
+  <tr><td>Registriert</td><td><%= joined %></td></tr>
+  <tr><td>Besiegte Gegner</td><td><%= number(player.kills_att + player.kills_def) %></td></tr>
+  <% if (player.profile) { %><tr><td valign="top">Profiltext</td><td style="white-space: pre-wrap"><%= player.profile %></td></tr><% } %>
+</tbody></table>
+<br />
+<table class="vis" width="100%"><tbody>
+  <tr><th>Dorf</th><th>Koordinaten</th><th>Punkte</th></tr>
+  <% for (const r of villages) { %><tr><td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= r.id %>"><%= r.name %></a></td><td><%= r.x %>|<%= r.y %></td><td><%= number(r.points) %></td></tr><% } %>
+</tbody></table>
+<p>
+  <% if (!self) { %>
+  <a class="btn" href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=new&amp;player=<%= player.id %>">Nachricht senden</a>
+  <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= player.id %>&amp;action=<%= isBuddy ? 'buddy_del' : 'buddy_add' %>">
+    <input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="<%= isBuddy ? 'Aus Adressbuch entfernen' : 'Zum Adressbuch' %>" />
+  </form>
+  <% } else { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=profile">Profil bearbeiten</a><% } %>
+</p>

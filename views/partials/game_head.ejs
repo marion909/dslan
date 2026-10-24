@@ -1,0 +1,27 @@
+  <title><%= village.name %> (<%= village.x %>|<%= village.y %>) - <%= t('index.twlan') %> - <%= world.name %></title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1<%- mobileView ? ', viewport-fit=cover' : '' %>" />
+  <% if (mobileView) { %><meta name="theme-color" content="#6b4410" /><meta name="mobile-web-app-capable" content="yes" /><% } %>
+  <link rel="stylesheet" type="text/css" href="/game.css" />
+  <link rel="stylesheet" type="text/css" href="/twlan.css" />
+  <% if (mobileView) { %><link rel="stylesheet" type="text/css" href="/mobile.css" /><% } %>
+  <script type="text/javascript" src="/game.js"></script>
+  <script type="text/javascript">
+    var image_base = "/graphic";
+    var server_utc_diff = <%- serverUtcDiff %>;
+    var mobile = false, mobile_on_normal = false, mobiledevice = false, premium = false;
+    var csrf_token = <%- JSON.stringify(csrf) %>;
+    var game_data = <%- JSON.stringify(gameData).replace(/</g, '\\u003c') %>;
+    VillageContext._urls.overview = 'game.php?village=__village__&screen=overview';
+    VillageContext._urls.info = 'game.php?village=<%= vid %>&id=__village__&screen=info_village';
+    VillageContext._urls.map = 'game.php?village=<%= vid %>&id=__village__&screen=map';
+    VillageContext._urls.place = 'game.php?village=<%= vid %>&target=__village__&screen=place';
+    VillageContext._urls.recruit = 'game.php?village=__village__&screen=train';
+    VillageContext.claim_enabled = <%= gameData.player.ally > 0 ? 'true' : 'false' %>;
+    VillageContext.igm_enabled = true;
+    VillageContext.send_troops_enabled = true;
+    VillageContext.send_attack_disabled = false;
+    $(document).ready(function () { UI.ToolTip($('.group_tooltip'), { delay: 1000 }); VillageContext.init(); });
+  </script>
+  <% for (const css of (meta.css || [])) { %><link rel="stylesheet" type="text/css" href="/<%= css %>" /><% } %>
+  <% for (const js of (meta.js || [])) { %><script type="text/javascript" src="/<%= js %>"></script><% } %>

@@ -1,0 +1,16 @@
+<h2><span class="icon header premium"></span> Premium-Punkte</h2>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2">Dein Guthaben</th></tr>
+  <tr><td width="160">Premium-Punkte</td><td><b style="font-size: 16px"><%= balance %></b></td></tr>
+  <tr><td valign="top">Wofür?</td><td>
+    Mit Premium-Punkten stellst du Bau-, Rekrutierungs- und Forschungsaufträge sofort fertig. Du findest die Schaltfläche „PP: sofort“ beim jeweils laufenden Auftrag.
+    Die Kosten betragen einen Punkt je angefangene zehn Minuten Restzeit.
+  </td></tr>
+  <tr><td valign="top">Woher?</td><td>Als Belohnung für Aufgaben. <%= isAdmin ? 'Als Admin kannst du Punkte im Admin-Bereich unter „Spieler“ vergeben.' : 'Der Admin des Servers kann dir Punkte schenken.' %></td></tr>
+</tbody></table>
+<br />
+<table class="vis" width="100%"><tbody>
+  <tr><th width="150">Zeit</th><th width="80">Punkte</th><th>Grund</th></tr>
+  <% for (const l of log) { %><tr><td class="nowrap"><%= dateText(l.time) %></td><td><b class="<%= l.delta < 0 ? 'warn' : '' %>"><%= l.delta > 0 ? '+' : '' %><%= l.delta %></b></td><td><%= l.reason %></td></tr><% } %>
+  <% if (!log.length) { %><tr><td colspan="3" class="inactive">Noch keine Buchungen.</td></tr><% } %>
+</tbody></table>

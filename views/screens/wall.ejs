@@ -1,0 +1,8 @@
+<%- head %>
+<br />
+<table class="vis" width="400"><tbody>
+  <tr><th colspan="2"><%= t('buildingWall.defensiveBonus') %></th></tr>
+  <tr><td>Aktueller Bonus</td><td><b>+<%= bonus.toFixed(1) %>%</b></td></tr>
+  <% if (nextBonus !== null) { %><tr><td>Bonus bei Stufe <%= level + 1 %></td><td>+<%= nextBonus.toFixed(1) %>%</td></tr><% } %>
+  <tr><td><%= t('buildingWall.basicDefense') %></td><td><%= basic %></td></tr>
+</tbody></table>

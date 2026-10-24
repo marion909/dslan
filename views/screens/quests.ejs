@@ -1,0 +1,17 @@
+<h2>Aufgaben</h2>
+<% if (message) { %><div class="error_box" style="margin-bottom:8px"><%= message %></div><% } %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Aufgabe</th><th>Belohnung</th><th></th></tr>
+  <% for (const q of quests) { %>
+  <tr>
+    <td><b><%= q.title %></b><br /><span class="twl-small"><%= q.text %></span></td>
+    <td class="nowrap"><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= q.reward[r] %> &nbsp;<% } %><% if (q.pp) { %><span class="icon header premium"></span> <%= q.pp %> PP<% } %></td>
+    <td width="140" align="center">
+      <% if (q.claimed) { %><span class="inactive">erledigt</span>
+      <% } else if (q.ready) { %>
+      <form method="post" action="/game.php?village=<%= vid %>&amp;screen=quests"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="quest" value="<%= q.id %>" /><input type="submit" class="btn" value="Belohnung abholen" /></form>
+      <% } else { %><span class="inactive">offen</span><% } %>
+    </td>
+  </tr>
+  <% } %>
+</tbody></table>

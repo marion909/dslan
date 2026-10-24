@@ -1,0 +1,65 @@
+<div id="building_wrapper">
+  <table id="buildings" class="vis nowrap" width="100%">
+    <tr>
+      <th width="220"><%= t('buildingMain.building') %></th>
+      <th colspan="4"><%= t('buildingMain.costs') %></th>
+      <th width="100"><%= destroy ? t('buildingMain.destroyTime') : t('buildingMain.buildTime') %> <img src="/graphic/questionmark.png" class="tooltip" title="hh:mm:ss" width="13" height="13" alt="" /></th>
+      <th style="width:200px;"><%= t('buildingMain.build') %></th>
+    </tr>
+    <% for (const b of active) { %>
+    <tr id="main_buildrow_<%= b.id %>"<% if (b.state === 'maxLevel') { %> class="completed"<% } %>>
+      <td>
+        <a href="/game.php?village=<%= vid %>&amp;screen=<%= b.id %>">
+          <img src="/graphic/buildings/mid/<%= buildingImage(b.id, b.level) %>" title="<%= buildingName(b.id) %>" alt="" class="bmain_list_img" />
+          <%= buildingName(b.id) %>
+        </a><br>
+        <span style="font-size: 0.9em"><%= b.level > 0 ? t('building.level', { x: b.level }) : t('building.noLevel') %></span>
+      </td>
+      <% if (destroy) { %>
+      <td colspan="4" class="inactive">&nbsp;</td>
+      <td><span class="icon header time"></span><%= duration(b.time) %></td>
+      <td class="build_options" style="white-space: normal; width: 300px">
+        <a class="btn btn-build"<% if (b.state !== true) { %> style="display:none"<% } %> data-building="<%= b.id %>" id="main_buildlink_<%= b.id %>" href="#"><%= t('buildingMain.destroyLevel') %></a>
+        <span class="inactive"<% if (b.state === true) { %> style="display:none"<% } %>><%= b.stateText %></span>
+      </td>
+      <% } else if (b.state === 'maxLevel') { %>
+      <td colspan="6" align="center" class="inactive"><%= t('buildingMain.fullyBuilt') %></td>
+      <% } else { %>
+      <% for (const r of physicalRes) { %>
+      <td class="cost_<%= r %><%= village[r] < b.costs[r] ? ' warn' : '' %>" data-cost="<%= b.costs[r] %>"><span class="icon header <%= r %>"></span><%= b.costs[r] %></td>
+      <% } %>
+      <td><span class="icon header population"></span><%= b.costs.population %></td>
+      <td><span class="icon header time"></span><%= duration(b.time) %></td>
+      <td class="build_options" style="white-space: normal; width: 300px">
+        <a class="btn btn-build"<% if (b.state !== true) { %> style="display:none"<% } %> data-building="<%= b.id %>" id="main_buildlink_<%= b.id %>" href="#">
+          <%= b.level === 0 ? t('buildingMain.build') : t('buildingMain.buildTo', { x: b.nextLevel }) %>
+        </a>
+        <span class="inactive"<% if (b.state === true) { %> style="display:none"<% } %>><%= b.stateText %></span>
+      </td>
+      <% } %>
+    </tr>
+    <% } %>
+  </table>
+  <br>
+  <% if (!destroy && inactive.length) { %>
+  <table id="buildings_unmet" class="vis nowrap tall" style="width: 100%"><tbody>
+    <tr><th style="width: 23%"><%= t('buildingMain.unmet') %></th><th><%= t('buildingMain.requirements') %></th></tr>
+    <% for (const b of inactive) { %>
+    <tr>
+      <td>
+        <img src="/graphic/buildings/mid/grey/<%= buildingImage(b.id, b.level) %>" title="" class="bmain_list_img" alt="">
+        <%= buildingName(b.id) %>
+      </td>
+      <td><div class="unmet_req">
+        <% for (const r of b.requirements) { %>
+        <span><span>
+          <img src="/graphic/buildings/mid/<%= r.met ? '' : 'grey/' %><%= buildingImage(r.building, r.have) %>" style="vertical-align: middle" alt="">
+          <span<% if (!r.met) { %> class="inactive"<% } %>><%= buildingName(r.building) %> (<%= r.level %>)</span>
+        </span></span>
+        <% } %>
+      </div></td>
+    </tr>
+    <% } %>
+  </tbody></table><br>
+  <% } %>
+</div>

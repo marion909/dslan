@@ -1,0 +1,33 @@
+<script type="text/javascript">
+  $(document).ready(function () {
+    BuildingMain.upgrade_building_link = '/game.php?village=<%= vid %>&screen=main&mode=<%= mode %>&ajaxaction=upgrade_building';
+    BuildingMain.downgrade_building_link = '/game.php?village=<%= vid %>&screen=main&mode=<%= mode %>&ajaxaction=downgrade_building';
+    BuildingMain.confirm_queue = <%= queueFactor > 1 ? 'true' : 'false' %>;
+    BuildingMain.mode = <%= mode === 'destroy' ? 1 : 0 %>;
+    BuildingMain.link_cancel = '/game.php?village=<%= vid %>&screen=main&mode=<%= mode %>&ajaxaction=cancel_order';
+    BuildingMain.link_change_order = '';
+    BuildingMain.buildings = <%- JSON.stringify(buildingData) %>;
+    $('.inactive img').fadeTo(0, .5);
+  });
+  $(document).ready(BuildingMain.init);
+</script>
+<% if (destroyAvailable) { %>
+<table class="vis modemenu" style="margin: 0 0 6px 5px"><tbody><tr>
+  <td<%- mode === 'build' ? ' class="selected"' : '' %> width="100"><a href="/game.php?village=<%= vid %>&amp;screen=main&amp;mode=build"><%= t('buildingMain.modeBuild') %></a></td>
+  <td<%- mode === 'destroy' ? ' class="selected"' : '' %> width="100"><a href="/game.php?village=<%= vid %>&amp;screen=main&amp;mode=destroy"><%= t('buildingMain.modeDestroy') %></a></td>
+</tr></tbody></table>
+<% } %>
+<table style="width:100%"><tr><td>
+  <%- queueHtml %>
+  <%- buildingsHtml %>
+</td></tr></table>
+<form action="game.php?village=<%= vid %>&amp;screen=main&amp;action=change_name" method="post">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" style="margin-left:5px">
+    <tr><th colspan="3"><%= t('buildingMain.changeName') %></th></tr>
+    <tr>
+      <td><input type="text" name="name" value="<%= village.name %>" maxlength="32" size="32" /></td>
+      <td><input type="submit" class="btn" value="<%= t('buildingMain.change') %>" /></td>
+    </tr>
+  </table>
+</form>

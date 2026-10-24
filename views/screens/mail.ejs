@@ -1,0 +1,79 @@
+<h2><%= t('game.menu.mails.title') %></h2>
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const m of modes) { if (m === 'mass_out' && !hasAlly) continue; %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 100px"><a href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=<%= m %>"><%= { 'in': t('game.menu.mails.in'), out: 'Ausgang', 'new': t('game.menu.mails.new'), mass_out: t('game.menu.mails.massOut'), address: t('game.menu.mails.address') }[m] %></a></td>
+  <% } %>
+</tr></tbody></table>
+<% if (folders.length || mode === 'in' || mode === 'folder') { %>
+<p class="twl-small" style="margin: 0 0 8px">Ordner:
+  <% for (const f of folders) { %><a href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=folder&amp;folder=<%= f.id %>"><%= folder && folder.id === f.id ? '▸ ' : '' %>📁 <%= f.name %> (<%= f.count %>)</a> &nbsp; <% } %>
+  <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=in&amp;action=folder_add"><input type="hidden" name="h" value="<%= csrf %>" /><input type="text" name="name" size="10" maxlength="30" placeholder="Neuer Ordner" /><input type="submit" class="btn" value="+" /></form>
+  <% if (folder) { %><form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=in&amp;action=folder_delete&amp;folder=<%= folder.id %>" onsubmit="return confirm('Ordner löschen? Die Nachrichten kommen zurück in den Eingang.');"><input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="Ordner löschen" /></form><% } %>
+</p>
+<% } %>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+
+<% if (view) { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th width="100">Betreff</th><th><%= view.subject %></th></tr>
+  <tr><td>Von</td><td><%= view.from_name || '(gelöscht)' %></td></tr>
+  <tr><td>An</td><td><%= view.to_name %></td></tr>
+  <tr><td>Gesendet</td><td><%= dateText(view.time) %></td></tr>
+  <tr><td colspan="2" style="white-space: pre-wrap; padding: 10px"><%= view.body %></td></tr>
+</tbody></table>
+<p>
+  <% if (view.from_id && view.from_id !== me_id) { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=new&amp;view=<%= view.id %>&amp;reply=1">Antworten</a><% } %>
+</p>
+<% } %>
+
+<% if (mode === 'in' || mode === 'out' || folder) { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=<%= mode %>&amp;action=delete">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th width="20"></th><th>Betreff</th><th><%= mode === 'in' ? 'Von' : 'An' %></th><th>Zeit</th></tr>
+    <% for (const m of list) { %>
+    <tr>
+      <td><input type="checkbox" name="ids" value="<%= m.id %>" /></td>
+      <td><a href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=<%= mode %>&amp;view=<%= m.id %>"><%= m.subject %></a><% if (mode === 'in' && !m.is_read) { %> <b>(neu)</b><% } %></td>
+      <td><%= mode === 'in' ? (m.from_name || '-') : m.to_name %></td>
+      <td class="nowrap"><%= dateText(m.time) %></td>
+    </tr>
+    <% } %>
+    <% if (!list.length) { %><tr><td colspan="4" class="inactive">Keine Nachrichten.</td></tr><% } %>
+  </tbody></table>
+  <% if (list.length) { %><p><input type="submit" class="btn" value="Löschen" />
+    <% if (mode !== 'out' && (folders.length || folder)) { %> &nbsp; <select name="op"><% for (const f of folders) { if (!folder || folder.id !== f.id) { %><option value="move_<%= f.id %>">Nach „<%= f.name %>“</option><% } } %><% if (folder) { %><option value="move_0">Zurück in den Eingang</option><% } %></select>
+      <input type="submit" class="btn" formaction="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=<%= mode %><%= folder ? '&amp;folder=' + folder.id : '' %>&amp;action=move" value="Verschieben" /><% } %></p><% } %>
+</form>
+<% } %>
+
+<% if (mode === 'new' || mode === 'mass_out') { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=<%= mode %>&amp;action=send">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2"><%= mode === 'mass_out' ? t('game.menu.mails.massOut') : t('game.menu.mails.new') %></th></tr>
+    <% if (mode === 'new') { %><tr><td>An</td><td><input type="text" name="to" value="<%= form.to %>" size="50" /> <span class="twl-small">mehrere mit ; trennen</span></td></tr>
+    <% } else { %><tr><td colspan="2">Geht an alle Mitglieder deines Stammes.</td></tr><% } %>
+    <tr><td>Betreff</td><td><input type="text" name="subject" value="<%= form.subject %>" size="60" maxlength="120" /></td></tr>
+    <tr><td valign="top">Text</td><td><textarea name="body" rows="12" cols="70"><%= form.body %></textarea></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Senden" /></td></tr>
+  </tbody></table>
+</form>
+<% } %>
+
+<% if (mode === 'address') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Spieler</th><th>Gruppe</th><th></th></tr>
+  <% for (const b of buddies) { %>
+  <tr><td><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= b.id %>"><%= b.name %></a></td>
+    <td><form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=address&amp;action=buddy_group"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="other" value="<%= b.id %>" /><input type="text" name="grp" value="<%= b.grp %>" size="12" maxlength="30" placeholder="–" /><input type="submit" class="btn" value="OK" /></form></td>
+    <td align="right"><a href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=new&amp;player=<%= b.id %>">Nachricht</a>
+    <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=address&amp;action=buddy_del"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="other" value="<%= b.id %>" /><input type="submit" class="btn" value="Entfernen" /></form></td></tr>
+  <% } %>
+  <% if (!buddies.length) { %><tr><td colspan="3" class="inactive">Das Adressbuch ist leer.</td></tr><% } %>
+</tbody></table>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=address&amp;action=buddy_add" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  Spieler hinzufügen: <input type="text" name="name" /> <input type="submit" class="btn" value="Hinzufügen" />
+</form>
+<% } %>

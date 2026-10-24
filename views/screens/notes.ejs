@@ -1,0 +1,7 @@
+<h2>Notizblock</h2>
+<% if (saved) { %><div class="success_box" style="margin-bottom: 8px">Gespeichert.</div><% } %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=notes">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <textarea name="text" rows="22" cols="90"><%= text %></textarea><br />
+  <input type="submit" class="btn" value="Speichern" />
+</form>

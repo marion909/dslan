@@ -1,0 +1,32 @@
+<h2>Bots</h2>
+<p>Bots sind Mitspieler, die über dieselben Spielregeln arbeiten wie du: Sie bauen, rekrutieren, forschen, spähen, greifen an, unterstützen Stammesmitglieder, handeln, gründen und besuchen Stämme, schreiben im Forum, erobern Dörfer und lösen Aufgaben. Sie können sich nicht einloggen.</p>
+<form method="post" action="/admin/bots/settings">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table>
+    <tr><th>Anzahl der Bots</th><td><input type="number" name="botCount" value="<%= s.botCount %>" min="0" max="200" size="4" /> <small>Neue Bots treten sofort bei, bei weniger Bots gehen die schwächsten (ihre Dörfer werden zu Barbarendörfern).</small></td></tr>
+    <tr><th>Bots aktiv</th><td><label><input type="checkbox" name="botActive" value="1"<%= s.botActive === '1' ? ' checked' : '' %> /> Bots machen Züge</label></td></tr>
+    <tr><th>Zeit zwischen zwei Zügen</th><td><input type="number" name="botInterval" value="<%= s.botInterval %>" min="2" max="3600" size="5" /> Sekunden (je Bot, mit etwas Zufall)</td></tr>
+    <tr><th>Angriffslust</th><td><select name="botAggression"><% for (let i = 1; i <= 5; i++) { %><option value="<%= i %>"<%= Number(s.botAggression) === i ? ' selected' : '' %>><%= i %><%= i === 1 ? ' (friedlich)' : i === 5 ? ' (sehr aggressiv)' : '' %></option><% } %></select></td></tr>
+    <tr><th>Spieler angreifen</th><td><label><input type="checkbox" name="botAttackPlayers" value="1"<%= s.botAttackPlayers === '1' ? ' checked' : '' %> /> Bots greifen auch echte Spieler an (nur ohne Angriffsschutz)</label></td></tr>
+    <tr><th>Namen kennzeichnen</th><td><label><input type="checkbox" name="botMark" value="1"<%= s.botMark === '1' ? ' checked' : '' %> /> neue Bots erhalten den Zusatz „[Bot]“ im Namen</label></td></tr>
+  </table>
+  <button>Speichern und anwenden</button>
+</form>
+<form method="post" action="/admin/bots/tick" style="margin-top: 8px"><input type="hidden" name="h" value="<%= csrf %>" /><button>Alle Bots jetzt einen Zug machen lassen</button></form>
+
+<h3>Bots (<%= bots.length %>)</h3>
+<table>
+  <tr><th>Name</th><th>Typ</th><th>Stamm</th><th>Dörfer</th><th>Punkte</th><th>Rang</th><th></th></tr>
+  <% for (const b of bots) { %>
+  <tr><td><%= b.name %></td><td><%= { builder: 'Aufbauer', warrior: 'Krieger', conqueror: 'Eroberer' }[b.persona] %></td><td><%= b.tag || '' %></td><td><%= b.villages %></td><td><%= number(b.points) %></td><td><%= b.rank %></td>
+    <td><form class="inline" method="post" action="/admin/bots/<%= b.user_id %>/remove" onsubmit="return confirm('Bot entfernen?')"><input type="hidden" name="h" value="<%= csrf %>" /><button class="danger">Entfernen</button></form></td></tr>
+  <% } %>
+  <% if (!bots.length) { %><tr><td colspan="7">Keine Bots.</td></tr><% } %>
+</table>
+
+<h3>Letzte Aktionen</h3>
+<table>
+  <tr><th width="150">Zeit</th><th width="200">Bot</th><th>Aktion</th></tr>
+  <% for (const l of log) { %><tr><td><%= dateText(l.time) %></td><td><%= l.name || '–' %></td><td><%= l.text %></td></tr><% } %>
+  <% if (!log.length) { %><tr><td colspan="3">Noch nichts passiert.</td></tr><% } %>
+</table>

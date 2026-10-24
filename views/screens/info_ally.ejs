@@ -1,0 +1,18 @@
+<h2><%= ally.name %> (<%= ally.tag %>)</h2>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2">Stammesprofil</th></tr>
+  <tr><td width="160">Rang</td><td><%= rank %></td></tr>
+  <tr><td>Punkte</td><td><%= number(points) %></td></tr>
+  <tr><td>Mitglieder</td><td><%= members.length %></td></tr>
+  <tr><td>Dörfer</td><td><%= villages %></td></tr>
+  <tr><td>Gegründet</td><td><%= created %></td></tr>
+  <% if (ally.description) { %><tr><td valign="top">Beschreibung</td><td style="white-space: pre-wrap"><%= ally.description %></td></tr><% } %>
+</tbody></table><br />
+<table class="vis" width="100%"><tbody>
+  <tr><th>Mitglied</th><th>Titel</th><th>Punkte</th></tr>
+  <% for (const m of members) { %><tr><td><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= m.id %>"><%= m.name %></a></td><td><%= m.ally_title %></td><td><%= number(m.points) %></td></tr><% } %>
+</tbody></table>
+<% if (treaties.length) { %><br /><table class="vis" width="100%"><tbody>
+  <tr><th>Diplomatie</th><th>Stamm</th></tr>
+  <% for (const c of treaties) { %><tr><td><%= { partner: 'Bündnis', nap: 'Nichtangriffspakt', enemy: 'Krieg' }[c.type] %></td><td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= c.other_id %>"><%= c.other_name %> (<%= c.other_tag %>)</a></td></tr><% } %>
+</tbody></table><% } %>

@@ -1,0 +1,121 @@
+<h2><%= t('game.menu.settings.title') %></h2>
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const m of modes.filter((x) => x !== 'world')) { %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 110px"><a href="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=<%= m %>"><%= { profile: t('game.menu.settings.profile'), settings: t('game.menu.settings.settings'), quickbar: t('game.menu.settings.quickbar'), notify: t('game.menu.settings.notify'), recovery: 'Passwort-Rettung', logins: t('game.menu.settings.logins'), block: t('game.menu.settings.block'), change_passwd: t('game.menu.settings.changePasswd'), 'delete': t('game.menu.settings.delete') }[m] %></a></td>
+  <% } %>
+</tr></tbody></table>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+<% if (mode === 'world') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2"><%= world.name %> – Welteinstellungen</th></tr>
+  <% for (const [label, value] of worldRows) { %><tr><td width="260"><%= label %></td><td><%= value %></td></tr><% } %>
+</tbody></table>
+<% } else if (mode === 'logins') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th><%= t('game.menu.settings.logins') %></th><th>IP-Adresse</th></tr>
+  <% for (const l of logins) { %><tr><td><%= dateText(l.time) %></td><td><%= l.ip %></td></tr><% } %>
+  <% if (!logins.length) { %><tr><td colspan="2" class="inactive">Noch keine Anmeldungen aufgezeichnet.</td></tr><% } %>
+</tbody></table>
+<% } else if (mode === 'sitter') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Deine Sitter</th><th></th></tr>
+  <% for (const b of sitters) { %><tr><td><%= b.name %></td><td align="right"><form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=sitter&amp;action=remove"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="other" value="<%= b.id %>" /><input type="submit" class="btn" value="Entfernen" /></form></td></tr><% } %>
+  <% if (!sitters.length) { %><tr><td colspan="2" class="inactive">Niemand darf deinen Account vertreten.</td></tr><% } %>
+</tbody></table>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=sitter" style="margin: 8px 0">
+  <input type="hidden" name="h" value="<%= csrf %>" /> Sitter hinzufügen: <input type="text" name="name" /> <input type="submit" class="btn" value="Eintragen" />
+</form>
+<p class="twl-small">Ein Sitter kann bauen, rekrutieren, angreifen und handeln – aber nichts am Account, an Nachrichten, Premium oder am Stamm ändern.</p>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Du darfst vertreten</th><th></th></tr>
+  <% for (const b of sitFor) { %><tr><td><%= b.name %></td><td align="right"><a class="btn" href="/page/sit?id=<%= b.id %>&amp;h=<%= csrf %>">Vertretung starten</a></td></tr><% } %>
+  <% if (!sitFor.length) { %><tr><td colspan="2" class="inactive">Niemand hat dich als Sitter eingetragen.</td></tr><% } %>
+</tbody></table>
+<% } else if (mode === 'block') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Blockierte Spieler</th><th></th></tr>
+  <% for (const b of blocked) { %><tr><td><%= b.name %></td><td align="right"><form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=block&amp;action=unblock"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="other" value="<%= b.id %>" /><input type="submit" class="btn" value="Freigeben" /></form></td></tr><% } %>
+  <% if (!blocked.length) { %><tr><td colspan="2" class="inactive">Niemand blockiert.</td></tr><% } %>
+</tbody></table>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=block" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" /> Spieler blockieren: <input type="text" name="name" /> <input type="submit" class="btn" value="Blockieren" />
+</form>
+<p class="twl-small">Blockierte Spieler können dir keine Nachrichten mehr schicken.</p>
+<% } else { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=<%= mode %>">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <% if (mode === 'profile') { %>
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2">Dein Profil</th></tr>
+    <tr><td width="140">Spielername</td><td><b><%= me.name %></b></td></tr>
+    <tr><td valign="top">Profiltext</td><td><textarea name="profile" rows="10" cols="70" maxlength="2000"><%= me.profile %></textarea></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Speichern" /> &nbsp; <a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= me.id %>">Profil ansehen</a></td></tr>
+  </tbody></table>
+  <% } else if (mode === 'settings') { %>
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2"><%= t('game.menu.settings.settings') %></th></tr>
+    <tr><td width="140">Sprache</td><td>
+      <select name="lang">
+        <% for (const [code, name] of languages) { %><option value="<%= code %>"<%= (me.lang || defaultLang) === code ? ' selected' : '' %>><%= name %></option><% } %>
+      </select>
+    </td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Speichern" /></td></tr>
+  </tbody></table>
+  <% } else if (mode === 'quickbar') { %>
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2"><%= t('game.menu.settings.quickbar') %></th></tr>
+    <% for (let i = 0; i < slots; i++) { const q = quick[i] || { label: '', target: '' }; %>
+    <tr><td width="40"><%= i + 1 %></td><td>
+      <input type="text" name="label_<%= i %>" value="<%= q.label %>" maxlength="20" placeholder="Beschriftung" size="18" />
+      <select name="target_<%= i %>"><option value="">–</option><% for (const [key, name] of targets) { %><option value="<%= key %>"<%= q.target === key ? ' selected' : '' %>><%= name %></option><% } %></select>
+    </td></tr>
+    <% } %>
+    <tr><td></td><td><input type="submit" class="btn" value="Speichern" /> &nbsp; <label><input type="checkbox" name="reset" value="1" /> Zurücksetzen auf Standard</label></td></tr>
+  </tbody></table>
+  <% } else if (mode === 'notify') { %>
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2"><%= t('game.menu.settings.notify') %></th></tr>
+    <tr><td width="220">Anzeige</td><td>
+      <label><input type="checkbox" name="browser" value="1"<%= prefs.browser ? ' checked' : '' %> /> Meldungen im Browser</label>
+      <a href="#" class="btn" onclick="if (window.Notification) Notification.requestPermission(function (p) { alert(p === 'granted' ? 'Erlaubt.' : 'Der Browser hat die Erlaubnis nicht erteilt.'); }); else alert('Dein Browser unterstützt keine Meldungen.'); return false;">Erlaubnis erteilen</a><br />
+      <label><input type="checkbox" name="sound" value="1"<%= prefs.sound ? ' checked' : '' %> /> Signalton</label>
+    </td></tr>
+    <tr><td>Wann?</td><td>
+      <label><input type="checkbox" name="attack" value="1"<%= prefs.attack ? ' checked' : '' %> /> Ein Angriff ist unterwegs zu mir</label><br />
+      <label><input type="checkbox" name="message" value="1"<%= prefs.message ? ' checked' : '' %> /> Neue Nachricht</label><br />
+      <label><input type="checkbox" name="report" value="1"<%= prefs.report ? ' checked' : '' %> /> Neuer Bericht</label>
+    </td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Speichern" /></td></tr>
+  </tbody></table>
+  <p class="twl-small">Die Meldungen erscheinen, solange eine Seite des Spiels geöffnet ist.</p>
+  <% } else if (mode === 'recovery') { %>
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2">Passwort-Rettung</th></tr>
+    <% if (code) { %>
+    <tr><td colspan="2"><div class="success_box" style="font-size: 18px; letter-spacing: 2px; text-align: center"><b><%= code %></b></div>
+      <p class="warn">Schreibe dir den Code jetzt auf. Er wird nur dieses eine Mal angezeigt. Mit ihm kannst du auf der Startseite („Passwort vergessen“) ein neues Passwort setzen.</p></td></tr>
+    <% } else { %>
+    <tr><td colspan="2">Ein Wiederherstellungscode ersetzt die E-Mail-Funktion: Wenn du dein Passwort vergisst, setzt du es damit selbst zurück. <%= hasCode ? 'Du hast bereits einen Code. Ein neuer macht den alten ungültig.' : 'Du hast noch keinen Code.' %></td></tr>
+    <tr><td width="160">Dein Passwort</td><td><input type="password" name="password" autocomplete="current-password" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="<%= hasCode ? 'Neuen Code erzeugen' : 'Code erzeugen' %>" /></td></tr>
+    <% } %>
+  </tbody></table>
+  <% } else if (mode === 'change_passwd') { %>
+  <table class="vis"><tbody>
+    <tr><th colspan="2"><%= t('game.menu.settings.changePasswd') %></th></tr>
+    <tr><td>Aktuelles Passwort</td><td><input type="password" name="old_password" autocomplete="current-password" /></td></tr>
+    <tr><td>Neues Passwort</td><td><input type="password" name="new_password" autocomplete="new-password" /></td></tr>
+    <tr><td>Wiederholen</td><td><input type="password" name="new_password2" autocomplete="new-password" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Ändern" /></td></tr>
+  </tbody></table>
+  <% } else { %>
+  <table class="vis"><tbody>
+    <tr><th colspan="2"><%= t('game.menu.settings.delete') %></th></tr>
+    <tr><td colspan="2" class="warn">Dein Account wird endgültig gelöscht. Deine Dörfer werden zu Barbarendörfern.</td></tr>
+    <tr><td>Passwort</td><td><input type="password" name="password" autocomplete="current-password" /></td></tr>
+    <tr><td></td><td><label><input type="checkbox" name="confirm" value="1" /> Ja, Account löschen</label></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Account löschen" /></td></tr>
+  </tbody></table>
+  <% } %>
+</form>
+<% } %>

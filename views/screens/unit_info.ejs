@@ -1,0 +1,18 @@
+<h2><img src="/graphic/unit/unit_<%= id %>.png" alt="" /> <%= unitName(id, 1) %></h2>
+<table class="vis" width="420"><tbody>
+  <tr><th colspan="2"><%= t('game.unit.combatValues') %></th></tr>
+  <tr><td><%= t('game.unit.attackStrength') %></td><td><%= c.atk.base %></td></tr>
+  <tr><td><%= t('game.unit.defenseGeneral') %></td><td><%= c.def.general.base %></td></tr>
+  <tr><td><%= t('game.unit.defenseCav') %></td><td><%= c.def.cavalry.base %></td></tr>
+  <tr><td><%= t('game.unit.defenseArcher') %></td><td><%= c.def.archer.base %></td></tr>
+  <tr><td><%= t('game.unit.capacity') %></td><td><%= c.haul.base %></td></tr>
+  <tr><td>Geschwindigkeit</td><td><%= c.speed.base %> Minuten je Feld</td></tr>
+  <tr><th colspan="2">Rekrutierung in: <%= building %></th></tr>
+  <tr><td>Kosten</td><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= c.recruitCosts[r] %> &nbsp;<% } %><span class="icon header population"></span> <%= c.recruitCosts.population %></td></tr>
+  <tr><td>Dauer (hier)</td><td><%= duration(time) %></td></tr>
+  <tr><td>Voraussetzungen</td><td><% for (const [b, l] of requirements) { %><%= buildingName(b) %> (<%= t('building.level', { x: l }) %>) &nbsp;<% } %><% if (!requirements.length) { %>keine<% } %></td></tr>
+  <% if (needsResearch) { %>
+  <tr><td><%= t('game.unit.researchCosts') %></td><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= research[r] %> &nbsp;<% } %>(<%= duration(research.time) %>)</td></tr>
+  <tr><td>Status</td><td><%= researched ? t('game.unit.alreadyResearched') : 'noch nicht erforscht' %></td></tr>
+  <% } %>
+</tbody></table>

@@ -1,0 +1,13 @@
+<h2>Einstellungen</h2>
+<form method="post" action="/admin/settings">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table>
+    <tr><th>Geschwindigkeits-Faktor</th><td><input name="speedMultiplier" value="<%= s.speedMultiplier %>" size="6" /> <small>multipliziert die Weltgeschwindigkeit (<%= world.speed / 1000 %>x). Wirkt sofort auf neue Aufträge und Produktion; auch die Dauer des Angriffsschutzes ändert sich.</small></td></tr>
+    <tr><th>Registrierung</th><td><select name="registration"><option value="open"<%= s.registration !== 'closed' ? ' selected' : '' %>>offen</option><option value="closed"<%= s.registration === 'closed' ? ' selected' : '' %>>geschlossen</option></select></td></tr>
+  </table>
+  <button>Speichern</button>
+</form>
+<h3>Weltkonfiguration (Datei <code>config/worlds/world/world.json</code>)</h3>
+<table>
+  <% for (const [k, val] of Object.entries(world)) { %><tr><th><%= k %></th><td><%= typeof val === 'object' ? JSON.stringify(val) : val %></td></tr><% } %>
+</table>

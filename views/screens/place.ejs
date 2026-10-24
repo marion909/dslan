@@ -1,0 +1,160 @@
+<table width="100%"><tr>
+  <td><img src="/graphic/big_buildings/<%= buildingImage('place', 1, 'big_buildings') %>" alt="" /></td>
+  <td width="100%"><h2><%= t('buildingPlace.name') %></h2><%= t('buildingPlace.description') %></td>
+</tr></table>
+<br />
+<table class="vis modemenu" width="100%"><tbody><tr>
+  <% for (const m of modes) { %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 80px"><a href="<%= base %>&amp;mode=<%= m %>"><%= { command: t('buildingPlaceNavi.command'), units: t('buildingPlaceNavi.units'), sim: t('buildingPlaceNavi.sim'), templates: t('buildingPlaceNavi.templates') }[m] %></a></td>
+  <% } %>
+</tr></tbody></table>
+<br />
+<% if (message) { %><div class="error_box" style="margin-bottom:6px"><%= message %></div><% } %>
+
+<% if (mode === 'units') { %>
+<table class="vis" width="100%"><tr><th><%= t('game.unit') %></th><th><%= t('game.inVillage') %></th></tr>
+  <% for (const u of unitIds) { %><tr><td><img src="/graphic/unit/unit_<%= u %>.png" alt=""> <%= unitName(u, 2) %></td><td><%= home[u] %></td></tr><% } %>
+</table>
+<% if (hosted.length) { %>
+<h3>Unterstützung in diesem Dorf</h3>
+<table class="vis" width="100%"><tr><th>Von</th><th>Truppen</th><th></th></tr>
+  <% for (const g of hosted) { %><tr>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= g.from.id %>"><%= g.from.name %> (<%= g.from.x %>|<%= g.from.y %>)</a><%= g.from.owner ? ' – ' + g.from.owner : '' %></td>
+    <td><% for (const [u, n] of Object.entries(g.units)) { %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> <% } %></td>
+    <td><a class="btn" href="<%= base %>&amp;mode=units&amp;action=sendback&amp;id=<%= g.id %>&amp;h=<%= csrf %>"><%= t('buildingPlace.sendback') %></a></td></tr><% } %>
+</table>
+<% } %>
+<% if (abroad.length) { %>
+<h3><%= t('buildingPlace.troopsOtherVillages') %></h3>
+<table class="vis" width="100%"><tr><th>Dorf</th><th>Truppen</th><th></th></tr>
+  <% for (const g of abroad) { %><tr>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= g.host.id %>"><%= g.host.name %> (<%= g.host.x %>|<%= g.host.y %>)</a></td>
+    <td><% for (const [u, n] of Object.entries(g.units)) { %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> <% } %></td>
+    <td><a class="btn" href="<%= base %>&amp;mode=units&amp;action=recall&amp;id=<%= g.id %>&amp;h=<%= csrf %>"><%= t('buildingPlace.withdraw') %></a></td></tr><% } %>
+</table>
+<% } %>
+
+<% } else if (mode === 'sim') { %>
+<form method="post" action="<%= base %>&amp;mode=sim">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th></th><th><%= t('buildingPlace.attacker') %></th><th><%= t('buildingPlace.defender') %></th></tr>
+    <% for (const u of unitIds) { %>
+    <tr><td><img src="/graphic/unit/unit_<%= u %>.png" alt=""> <%= unitName(u, 2) %></td>
+      <td><input type="text" size="6" name="att_<%= u %>" value="<%= form.attacker[u] || '' %>" /></td>
+      <td><input type="text" size="6" name="def_<%= u %>" value="<%= form.defender[u] || '' %>" /></td></tr>
+    <% } %>
+    <tr><td><%= t('buildingPlace.wall') %></td><td></td><td><input type="text" size="3" name="wall" value="<%= form.wall %>" /></td></tr>
+    <tr><td>Punkte (Moral)</td><td><input type="text" size="6" name="att_points" value="<%= form.attPoints || '' %>" /></td><td><input type="text" size="6" name="def_points" value="<%= form.defPoints || '' %>" /></td></tr>
+    <tr><td><%= t('buildingPlace.luck') %></td><td colspan="2"><input type="text" size="4" name="luck" value="<%= form.luck %>" /> %  &nbsp; <label><input type="checkbox" name="night" value="1"<%= form.night ? ' checked' : '' %> /> <%= t('buildingPlace.night') %></label></td></tr>
+    <tr><td></td><td colspan="2"><input type="submit" class="btn" value="<%= t('buildingPlace.calculate') %>" /></td></tr>
+  </tbody></table>
+</form>
+<% if (result) { %>
+<h3><%= result.win ? t('buildingPlace.attacker') + ' gewinnt' : t('buildingPlace.defender') + ' gewinnt' %></h3>
+<table class="vis" width="100%"><tbody>
+  <tr><th></th><th>Angreifer</th><th>Verluste</th><th>Verteidiger</th><th>Verluste</th></tr>
+  <% for (const u of unitIds) { if (!(form.attacker[u] || form.defender[u])) continue; %>
+  <tr><td><img src="/graphic/unit/unit_<%= u %>.png" alt=""></td><td><%= form.attacker[u] || 0 %></td><td><%= result.attackerLosses[u] || 0 %></td><td><%= form.defender[u] || 0 %></td><td><%= result.defenderLosses[u] || 0 %></td></tr>
+  <% } %>
+  <tr><td><%= t('game.report.luck') %></td><td colspan="4"><%= number(result.attack) %> Angriff / <%= number(result.defense) %> Verteidigung &middot; <%= t('buildingPlace.moral') %> <%= Math.round(result.morale * 100) %>%</td></tr>
+</tbody></table>
+<% } %>
+
+<% } else if (mode === 'templates') { %>
+<table class="vis" width="100%"><tr><th>Vorlage</th><th>Truppen</th><th></th></tr>
+  <% for (const tpl of templates) { %><tr><td><%= tpl.name %></td>
+    <td><% for (const [u, n] of Object.entries(tpl.units)) { %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> <% } %></td>
+    <td><form method="post" action="<%= base %>&amp;mode=templates&amp;action=delete"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="id" value="<%= tpl.id %>" /><input type="submit" class="btn" value="Löschen" /></form></td></tr><% } %>
+  <% if (!templates.length) { %><tr><td colspan="3" class="inactive">Noch keine Vorlagen.</td></tr><% } %>
+</table>
+<form method="post" action="<%= base %>&amp;mode=templates&amp;action=save" style="margin-top:8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Neue Vorlage</th></tr>
+    <tr><td>Name</td><td><input type="text" name="name" maxlength="40" /></td></tr>
+    <% for (const col of columns) for (const u of col) { %><tr><td><img src="/graphic/unit/unit_<%= u %>.png" alt=""> <%= unitName(u, 2) %></td><td><input type="text" size="6" name="<%= u %>" /></td></tr><% } %>
+    <tr><td></td><td><input type="submit" class="btn" value="Speichern" /></td></tr>
+  </tbody></table>
+</form>
+
+<% } else if (confirm) { %>
+<form id="command-confirm-form" action="<%= base %>&amp;action=command" method="post">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <input type="hidden" name="target" value="<%= confirm.target.id %>" />
+  <input type="hidden" name="type" value="<%= confirm.type %>" />
+  <h2><%= t(confirm.type === 'support' ? 'buildingPlace.confirmSupport' : 'buildingPlace.confirmAttack', { name: confirm.target.name }) %></h2>
+  <table class="vis" width="320"><tbody>
+    <tr><td><%= t('buildingPlace.target') %>:</td><td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= confirm.target.id %>"><%= confirm.target.name %> (<%= confirm.target.x %>|<%= confirm.target.y %>)</a></td></tr>
+    <tr><td><%= t('buildingPlace.duration') %>:</td><td><%= duration(confirm.seconds) %></td></tr>
+    <tr><td><%= t('buildingPlace.arrival') %>:</td><td><%= clock(now + confirm.seconds) %></td></tr>
+    <% if (confirm.reserved) { %><tr><td colspan="2" class="warn">Achtung: Dieses Dorf ist von <%= confirm.reserved %> reserviert.</td></tr><% } %>
+    <% if (confirm.type === 'attack') { %><tr><td><%= t('buildingPlace.moral') %>:</td><td style="font-weight:bold"><%= Math.round(confirm.morale * 100) %>%</td></tr>
+    <tr><td colspan="2"><span class="icon header ressources" title="<%= t('game.unit.capacity') %>"></span> <%= number(confirm.capacity) %></td></tr><% } %>
+  </tbody></table><br />
+  <table class="vis"><tbody>
+    <tr><% for (const u of Object.keys(confirm.units)) { %><th width="50"><img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt=""></th><% } %></tr>
+    <tr><% for (const n of Object.values(confirm.units)) { %><td class="unit-item"><%= n %></td><% } %></tr>
+  </tbody></table><br />
+  <% for (const [u, n] of Object.entries(confirm.units)) { %><input type="hidden" name="<%= u %>" value="<%= n %>"><% } %>
+  <input id="troop_confirm_go" class="btn <%= confirm.type === 'support' ? 'btn-support' : 'btn-attack' %>" type="submit" value="<%= confirm.type === 'support' ? t('buildingPlace.support') : t('buildingPlace.attack') %>">
+</form>
+
+<% } else { %>
+<form id="units_form" name="units" action="<%= base %>&amp;try=confirm" method="post" class="float_left">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table><tbody><tr>
+    <% for (const col of columns) { %>
+    <td valign="top"><table class="vis" width="100%"><tbody>
+      <% for (const u of col) { %>
+      <tr><td class="nowrap">
+        <img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt="">
+        <input id="unit_input_<%= u %>" name="<%= u %>" type="text" style="width: 40px" tabindex="1" value="<%= prefill[u] || '' %>" class="unitsInput">
+        <a href="javascript:insertUnit($('#unit_input_<%= u %>'), <%= home[u] %>)">(<%= home[u] %>)</a>
+      </td></tr>
+      <% } %>
+    </tbody></table></td>
+    <% } %>
+  </tr></tbody></table>
+  <br>
+  <div class="target-select clearfix vis float_left">
+    <h4><%= t('buildingPlace.target') %>:</h4>
+    <table class="vis" style="width: 100%"><tbody><tr><td>
+      <input type="text" name="coord" value="<%= prefillTarget %>" placeholder="500|500" style="width:90px" /> <span class="twl-small">x|y</span>
+    </td></tr>
+    <% if (favorites.length || recent.length) { %>
+    <tr><td class="twl-small">
+      <% if (favorites.length) { %><b>Favoriten:</b>
+      <% for (const f of favorites) { %><a href="#" class="twl-target" data-coord="<%= f.x %>|<%= f.y %>"><%= f.name %> (<%= f.x %>|<%= f.y %>)</a> &nbsp;<% } %><br /><% } %>
+      <% if (recent.length) { %><b>Verlauf:</b>
+      <% for (const f of recent) { %><a href="#" class="twl-target" data-coord="<%= f.x %>|<%= f.y %>"><%= f.name %> (<%= f.x %>|<%= f.y %>)</a> &nbsp;<% } %><% } %>
+    </td></tr>
+    <% } %></tbody></table>
+  </div>
+  <div class="target-select clearfix vis float_left">
+    <h4>Befehl:</h4>
+    <table class="vis" style="width: 100%"><tbody><tr><td>
+      <input id="target_attack" tabindex="15" class="attack btn btn-attack btn-target-action" name="attack" type="submit" value="<%= t('buildingPlace.attack') %>">
+      <input id="target_support" tabindex="16" class="support btn btn-support btn-target-action" name="support" type="submit" value="<%= t('buildingPlace.support') %>">
+    </td></tr></tbody></table>
+  </div>
+</form>
+<div class="vis float_left" style="margin: 4px 0 0 10px; min-width: 150px;">
+  <h4><a href="<%= base %>&amp;mode=templates"><%= t('buildingPlaceNavi.templates') %></a></h4>
+  <table class="vis" style="width: 100%"><tbody>
+    <tr class="row_b"><td><a id="selectAllUnits" href="#" onclick="selectAllUnits(true); return false;"><%= t('buildingPlace.all') %></a></td></tr>
+    <% for (const tpl of templates) { %><tr class="row_a"><td><a href="#" class="twl-template" data-units='<%= JSON.stringify(tpl.units) %>'><%= tpl.name %></a></td></tr><% } %>
+  </tbody></table>
+</div>
+<script>
+  $('.twl-target').click(function () { $('input[name=coord]').val($(this).data('coord')); return false; });
+  $('.twl-template').click(function () {
+    var u = $(this).data('units'); $('.unitsInput').val('');
+    $.each(u, function (id, n) { $('#unit_input_' + id).val(n); });
+    return false;
+  });
+</script>
+<div style="clear:both"></div>
+<% } %>
+<h3 style="clear: both;"><%= t('buildingPlace.troopMovements') %></h3>
+<%- movementsHtml %>

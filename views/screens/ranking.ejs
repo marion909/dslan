@@ -1,0 +1,60 @@
+<h2><%= t('game.menu.ranking.title') %></h2>
+<% const isAlly = mode.endsWith('ally'); const link = (m, extra) => `/game.php?village=${vid}&screen=ranking&mode=${m}${extra || ''}`; %>
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const m of modes) { %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 90px"><a href="<%- link(m) %>"><%= t('game.menu.ranking.' + ({ ally: 'ally', player: 'player', con_ally: 'conAlly', con_player: 'conPlayer', kill_ally: 'killAlly', kill_player: 'killPlayer', wars: 'wars' })[m]) %></a></td>
+  <% } %>
+</tr></tbody></table>
+<% if (mode === 'wars') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th width="50">Rang</th><th>Stamm</th><th>Kampfpunkte</th><th></th><th>Kampfpunkte</th><th>Stamm</th></tr>
+  <% for (const w of wars) { %>
+  <tr><td><%= w.rank %></td>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= w.a %>"><%= w.a_name %> (<%= w.a_tag %>)</a></td><td><b><%= number(w.a_kills) %></b></td>
+    <td align="center">⚔</td>
+    <td><b><%= number(w.b_kills) %></b></td><td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= w.b %>"><%= w.b_name %> (<%= w.b_tag %>)</a></td></tr>
+  <% } %>
+  <% if (!wars.length) { %><tr><td colspan="6" class="inactive">Zurzeit herrscht kein Krieg zwischen Stämmen.</td></tr><% } %>
+</tbody></table>
+<% } else { %>
+<% if (mode === 'kill_player') { %>
+<p><% for (const k of [['all', 'Gesamt'], ['att', 'Als Angreifer'], ['def', 'Als Verteidiger']]) { %><a href="<%- link('kill_player', '&kind=' + k[0]) %>"<%- kind === k[0] ? ' style="font-weight:bold"' : '' %>><%= k[1] %></a> &nbsp;<% } %></p>
+<% } %>
+<% if (mode.startsWith('con_')) { %>
+<form method="get" action="/game.php" style="margin-bottom: 6px">
+  <input type="hidden" name="village" value="<%= vid %>" /><input type="hidden" name="screen" value="ranking" /><input type="hidden" name="mode" value="<%= mode %>" />
+  Kontinent: <input type="text" name="con" value="<%= con %>" size="3" maxlength="2" /> <input type="submit" class="btn" value="OK" />
+</form>
+<% } %>
+<form method="get" action="/game.php" style="margin-bottom: 6px">
+  <input type="hidden" name="village" value="<%= vid %>" /><input type="hidden" name="screen" value="ranking" /><input type="hidden" name="mode" value="<%= mode %>" />
+  <% if (mode.startsWith('con_')) { %><input type="hidden" name="con" value="<%= con %>" /><% } %>
+  <%= isAlly ? 'Stamm suchen' : 'Spieler suchen' %>: <input type="text" name="name" value="<%= search %>" /> <input type="submit" class="btn" value="OK" />
+  <% if (myIndex >= 0) { %> &nbsp; <a href="<%- link(mode, '&from=' + (Math.floor(myIndex / page) * page) + (mode.startsWith('con_') ? '&con=' + con : '')) %>">» eigene Position</a><% } %>
+</form>
+<table class="vis" width="100%"><tbody>
+  <tr>
+    <th width="50">Rang</th><th>Name</th>
+    <% if (!isAlly) { %><th>Stamm</th><% } else { %><th>Kürzel</th><th>Mitglieder</th><% } %>
+    <% if (mode.startsWith('kill_')) { %><th>Besiegte Gegner</th><% } else { %><th>Punkte</th><th>Dörfer</th><% } %>
+  </tr>
+  <% for (const r of rows) { %>
+  <tr class="<%= r.id === ownId ? 'lit' : '' %>">
+    <td><%= r.rank %></td>
+    <% if (!isAlly) { %>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= r.id %>"><%= r.name %></a></td>
+    <td><% if (r.ally_id) { %><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= r.ally_id %>"><%= r.tag %></a><% } %></td>
+    <% } else { %>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= r.id %>"><%= r.name %></a></td><td><%= r.tag %></td><td><%= r.members %></td>
+    <% } %>
+    <% if (mode.startsWith('kill_')) { %><td><%= number(mode === 'kill_ally' ? r.kills : (kind === 'att' ? r.kills_att : kind === 'def' ? r.kills_def : r.kills)) %></td>
+    <% } else { %><td><%= number(r.points) %></td><td><%= r.villages || '-' %></td><% } %>
+  </tr>
+  <% } %>
+  <% if (!rows.length) { %><tr><td colspan="6" class="inactive">Keine Einträge.</td></tr><% } %>
+</tbody></table>
+<p>
+  <% if (from > 0) { %><a href="<%- link(mode, '&from=' + Math.max(0, from - page) + (mode.startsWith('con_') ? '&con=' + con : '')) %>">« zurück</a><% } %>
+  <% if (from + page < total) { %> &nbsp; <a href="<%- link(mode, '&from=' + (from + page) + (mode.startsWith('con_') ? '&con=' + con : '')) %>">weiter »</a><% } %>
+</p>
+<% } %>

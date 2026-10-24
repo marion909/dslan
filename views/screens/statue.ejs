@@ -1,0 +1,68 @@
+<%- head %>
+<br />
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <td<%- mode === 'index' ? ' class="selected"' : '' %> style="min-width: 120px"><a href="/game.php?village=<%= vid %>&amp;screen=statue&amp;mode=index"><%= t('buildingStatue.modeIndex') %></a></td>
+  <td<%- mode === 'inventory' ? ' class="selected"' : '' %> style="min-width: 120px"><a href="/game.php?village=<%= vid %>&amp;screen=statue&amp;mode=inventory"><%= t('buildingStatue.modeInventory') %></a></td>
+</tr></tbody></table>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+
+<% if (mode === 'index') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2"><%= t('buildingStatue.yourPala') %></th></tr>
+  <tr><td width="160"><%= t('buildingStatue.palaName') %></td><td><b><%= name %></b></td></tr>
+  <tr><td>Status</td><td>
+    <% if (owned === 0) { %>Kein Paladin vorhanden.
+    <% } else if (homeHere > 0) { %><%= name %> ist in diesem Dorf stationiert.
+    <% } else { %><%= name %> ist in einem anderen Dorf oder unterwegs.<% } %>
+  </td></tr>
+</tbody></table>
+<br />
+<%- queueHtml %>
+<% if (owned === 0 && !inQueue) { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=statue&amp;action=recruit">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2"><%= t('buildingStatue.create') %></th></tr>
+    <tr><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= recruit[r] %> &nbsp;<% } %><span class="icon header population"></span> <%= recruit.population %> &nbsp;<span class="icon header time"></span> <%= duration(recruitTime) %></td>
+      <td><input type="submit" class="btn btn-recruit" value="<%= t('buildingStatue.doRecruit') %>" /></td></tr>
+  </tbody></table>
+</form>
+<% } else if (owned > 0 || inQueue) { %><p class="twl-small"><%= t('buildingStatue.palaExists') %></p><% } %>
+<% if (targets.length) { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=statue&amp;action=move" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  Paladin umziehen nach: <select name="to"><% for (const tv of targets) { %><option value="<%= tv.id %>"><%= tv.name %> (<%= tv.x %>|<%= tv.y %>)</option><% } %></select>
+  <input type="submit" class="btn" value="Losschicken" />
+</form>
+<% } %>
+<br />
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=statue&amp;action=rename">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <%= t('buildingStatue.palaRename') %>: <input type="text" name="name" value="<%= name %>" maxlength="50" /> <input type="submit" class="btn" value="<%= t('buildingStatue.palaDoRename') %>" />
+</form>
+
+<% } else { %>
+<div style="width:840px;float:left;">
+  <div style="float:right;width:210px;padding-right:5px;"><p><%= t('buildingStatue.inventoryDes') %></p></div>
+  <div style="float:left;position:relative;z-index:9996;width:605px;padding-left:2px;">
+    <div style="width:600px;height:430px;padding:0;margin-right:10px;z-index:9997">
+      <% for (const i of items) { if (!foundItems.includes(i)) continue; %><img src="/graphic/inventory/<%= i %>.png" class="inv_map inv_<%= i %>" alt=""/><% } %>
+      <img src="/graphic/map/empty.png" alt="" title="" class="inv_empty" usemap="#inv" />
+      <map id="inv" name="inv">
+        <% for (const i of items) { if (!foundItems.includes(i)) continue; %>
+        <area shape="poly" id="item_<%= i %>" coords="<%= poly[i] %>" href="/game.php?village=<%= vid %>&amp;screen=statue&amp;mode=inventory&amp;action=equip&amp;item=<%= equipped === i ? '' : i %>&amp;h=<%= csrf %>"
+          title="<%= itemName(i) %> :: Angriff x<%= itemInfo[i].att %>, Verteidigung x<%= itemInfo[i].def %><%= equipped === i ? ' (ausgerüstet)' : '' %>" />
+        <% } %>
+      </map>
+      <img src="/graphic/inventory/inventory.jpg" alt="" title="" />
+    </div>
+  </div>
+</div>
+<br style="clear:both" />
+<table class="vis" style="width: 605px; padding:0;margin:0;"><tbody>
+  <tr><th colspan="3"><%= foundItems.length === items.length ? t('buildingStatue.allItemsFound') : t('buildingStatue.findingProgress') %></th></tr>
+  <% if (foundItems.length < items.length) { %><tr><td colspan="3"><div class="progress-bar"><span class="label"><%= Math.round(progress) %>%</span><div style="width:<%= Math.round(progress) %>%"></div></div></td></tr><% } %>
+  <tr><td colspan="3">Ausgerüstet: <b><%= equipped ? itemName(equipped) : t('knight.noItem') %></b></td></tr>
+  <% for (const i of foundItems) { %><tr><td><%= itemName(i) %></td><td>Angriff x<%= itemInfo[i].att %>, Verteidigung x<%= itemInfo[i].def %></td><td><a href="/game.php?village=<%= vid %>&amp;screen=statue&amp;mode=inventory&amp;action=equip&amp;item=<%= equipped === i ? '' : i %>&amp;h=<%= csrf %>"><%= equipped === i ? 'Ablegen' : 'Ausrüsten' %></a></td></tr><% } %>
+</tbody></table>
+<% } %>

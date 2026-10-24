@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+  <title><%= t('createVillage.title') %> - <%= t('index.twlan') %></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" type="text/css" href="/game.css" />
+  <link rel="stylesheet" type="text/css" href="/twlan.css" />
+</head>
+<body id="ds_body">
+<div style="max-width: 640px; margin: 40px auto; padding: 0 12px;">
+  <table id="content_value" class="inner-border main" cellspacing="0" width="100%"><tr><td>
+    <h3><img src="/graphic/rabe_38x40.png" alt="" /> <%= t('createVillage.title') %></h3>
+    <% if (error) { %><div class="error_box" style="margin-bottom: 8px"><%= error %></div><% } %>
+    <h4><%= t('createVillage.description') %></h4>
+    <table class="vis"><tr>
+      <td width="200">
+        <form action="/page/start" method="post">
+          <input type="hidden" name="h" value="<%= csrf %>" />
+          <label><input type="radio" name="direction" value="random" checked="checked" /> <%= t('createVillage.drandom') %></label><br />
+          <label><input type="radio" name="direction" value="sw" /> <%= t('createVillage.dsw') %></label><br />
+          <label><input type="radio" name="direction" value="nw" /> <%= t('createVillage.dnw') %></label><br />
+          <label><input type="radio" name="direction" value="so" /> <%= t('createVillage.dso') %></label><br />
+          <label><input type="radio" name="direction" value="no" /> <%= t('createVillage.dno') %></label><br />
+          <% if (allyId) { %><label><input type="radio" name="direction" value="ally" /> <%= t('createVillage.dally') %></label><br /><% } %>
+          <br /><input type="submit" class="btn" value="<%= t('createVillage.submit') %>" />
+        </form>
+      </td>
+      <td><img src="/graphic/richtung/richtung.png" alt="" style="max-width: 100%" /></td>
+    </tr></table>
+  </td></tr></table>
+</div>
+</body>
+</html>

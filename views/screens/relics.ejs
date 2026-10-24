@@ -1,0 +1,26 @@
+<h2>Reliquien</h2>
+<p>Reliquien liegen in einzelnen Dörfern. Wem das Dorf gehört, kann die Kraft der Reliquie einem eigenen Dorf im Umkreis von <%= radius %> Feldern zuweisen. Wechselt eines der beiden Dörfer den Besitzer, endet die Wirkung.</p>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom:8px"><%= message %></div><% } %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Reliquie</th><th>Wirkung</th><th>Fundort</th><th>Besitzer</th><th>Zugewiesen an</th></tr>
+  <% for (const r of all) { %>
+  <tr>
+    <td><img src="/graphic/map/relic.png" alt="" style="vertical-align: middle" /> <b><%= r.name %></b></td>
+    <td>+<%= r.bonus %>% <%= r.effectLabel %></td>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= r.site_village %>"><%= r.site_x %>|<%= r.site_y %></a></td>
+    <td><%= r.owner ? r.owner + (r.owner_tag ? ' (' + r.owner_tag + ')' : '') : 'Barbaren' %></td>
+    <td>
+      <% if (r.own) { %>
+      <form method="post" action="/game.php?village=<%= vid %>&amp;screen=relics" style="display:inline">
+        <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="relic" value="<%= r.id %>" />
+        <select name="village">
+          <option value="">– niemand –</option>
+          <% for (const c of r.choices) { %><option value="<%= c.id %>"<%= r.assigned_village === c.id ? ' selected' : '' %>><%= c.name %> (<%= c.x %>|<%= c.y %>)</option><% } %>
+        </select> <input type="submit" class="btn" value="OK" />
+      </form>
+      <% } else if (r.target_name) { %><%= r.target_name %> (<%= r.target_x %>|<%= r.target_y %>)<% } else { %>–<% } %>
+    </td>
+  </tr>
+  <% } %>
+  <% if (!all.length) { %><tr><td colspan="5" class="inactive">In dieser Welt gibt es keine Reliquien.</td></tr><% } %>
+</tbody></table>

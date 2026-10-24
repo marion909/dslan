@@ -1,0 +1,17 @@
+<h2><%= t('game.overview.recruit') %></h2>
+<% for (const r of results) { %><div class="<%= r.ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 4px"><b><%= r.village %>:</b> <%= r.text %></div><% } %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=train">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th>Dorf</th><% for (const u of cols) { %><th><img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt="<%= u %>"></th><% } %><th>in Ausbildung</th></tr>
+    <% for (const r of rows) { %>
+    <tr>
+      <td class="nowrap"><a href="/game.php?village=<%= r.id %>&amp;screen=overview"><%= r.name %></a> <span class="twl-small">(<%= r.x %>|<%= r.y %>)</span></td>
+      <% for (const u of cols) { %><td align="center"><% if (r.cells[u]) { %><input type="text" name="<%= u %>_<%= r.id %>" size="4" placeholder="<%= r.cells[u].max %>" title="<%= r.cells[u].home %> im Dorf, höchstens <%= r.cells[u].max %> möglich" /><% } else { %><span class="inactive">–</span><% } %></td><% } %>
+      <td><%= r.queued || '' %></td>
+    </tr>
+    <% } %>
+    <% if (!cols.length) { %><tr><td colspan="9" class="inactive">In keinem Dorf kannst du zurzeit Truppen ausbilden.</td></tr><% } %>
+  </tbody></table>
+  <p><input type="submit" class="btn btn-recruit" value="<%= t('game.unit.recruit') %>" /> <span class="twl-small">Die grauen Zahlen sind die höchstmögliche Menge je Dorf.</span></p>
+</form>

@@ -1,0 +1,14 @@
+<script type="text/javascript">
+  $(document).ready(function () {
+    TribalWars.initTab('<%= csrf %>');
+    Timing.init(<%- serverNow %>);
+    HotKeys.init();
+    // Narrow screens: scale the fixed-size village picture down to fit.
+    var fitVillage = function () {
+      var el = document.getElementById('buildings_visual');
+      if (el) el.style.zoom = Math.min(1.1, (Math.min(screen.width, window.innerWidth) - 56) / 600);
+    };
+    if (Math.min(screen.width, window.innerWidth) < 800) { fitVillage(); $(window).on('resize', fitVillage); }
+    UI.Notification.enabled = true;
+  });
+</script>

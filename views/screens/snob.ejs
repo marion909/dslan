@@ -1,0 +1,43 @@
+<%- head %>
+<br />
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <td<%- mode === 'train' ? ' class="selected"' : '' %> style="min-width: 120px"><a href="/game.php?village=<%= vid %>&amp;screen=snob&amp;mode=train"><%= t('buildingSnobNavi.train') %></a></td>
+  <td<%- mode === 'coin' ? ' class="selected"' : '' %> style="min-width: 120px"><a href="/game.php?village=<%= vid %>&amp;screen=snob&amp;mode=coin"><%= t('buildingSnobNavi.coin') %></a></td>
+</tr></tbody></table>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+
+<% if (mode === 'train') { %>
+<%- queueHtml %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=snob&amp;mode=train">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th><%= t('game.unit') %></th><th><%= t('buildingMain.costs') %></th><th><%= t('game.inVillage') %></th><th><%= t('buildingSnob.doCreateHeader') %></th></tr>
+    <tr>
+      <td class="nowrap"><img src="/graphic/unit/unit_snob.png" alt=""> <%= unitName('snob', 1) %></td>
+      <td class="nowrap"><span class="icon header population"></span> <%= unit.recruitCosts.population %> &nbsp; 1 <%= t('buildingSnob.coinsSingular') %> &nbsp; <span class="icon header time"></span> <%= duration(trainTime) %></td>
+      <td><%= unitsHome %></td>
+      <td><input type="text" name="amount" value="1" size="3" /> <input type="submit" class="btn btn-recruit" value="<%= t('buildingSnob.doCreate') %>" /></td>
+    </tr>
+  </tbody></table>
+</form>
+<% } else { %>
+<p><%= t('buildingSnob.coinHint') %></p>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=snob&amp;mode=coin">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2"><%= t('buildingSnob.createCoins') %></th></tr>
+    <tr><td>Kosten je <%= t('buildingSnob.coinsSingular') %></td><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= number(coinCost[r]) %> &nbsp;<% } %></td></tr>
+    <tr><td>Vorhanden</td><td><%= summary.coins %> <%= t('buildingSnob.coinsPlural') %></td></tr>
+    <tr><td><%= t('buildingSnob.choseAmount') %></td><td><input type="text" name="amount" value="1" size="3" /> <input type="submit" class="btn" value="<%= t('buildingSnob.actionCreateCoin') %>" /></td></tr>
+  </tbody></table>
+</form>
+<% } %>
+<br />
+<h4><%= t('buildingSnob.amountCreatable') %></h4>
+<table class="vis"><tbody>
+  <tr><td><%= t('buildingSnob.limit') %>:</td><td><%= summary.limit %></td></tr>
+  <tr><td>- <%= t('buildingSnob.currentAmount') %>:</td><td><%= summary.nobles %></td></tr>
+  <tr><td>- <%= t('buildingSnob.coinsPlural') %>:</td><td><%= summary.coins %></td></tr>
+  <tr><td>- <%= t('buildingSnob.amountEnnobled') %>:</td><td><%= summary.conquered %></td></tr>
+  <tr><th><%= t('buildingSnob.amountStillProducable') %>:</th><th><%= summary.mintable %></th></tr>
+</tbody></table>

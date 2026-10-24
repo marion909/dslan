@@ -1,0 +1,125 @@
+<table cellspacing="0" cellpadding="0" id="overviewtable" align="center"><tr>
+  <td valign="top" id="leftcolumn" width="670">
+    <div id="show_summary" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= village.name %> (<%= t('game.overview.points', { x: points }) === 'game.overview.points' ? points + ' Punkte' : t('game.overview.points', { x: points }) %>)</h4>
+      <% if (visual) { %>
+      <script type="text/javascript">
+        $(document).ready(function () { UpgradeBuilding.init('/game.php?village=<%= vid %>&screen=main&ajaxaction=get_possible_building_upgrades', '/game.php?village=<%= vid %>&screen=main&ajaxaction=upgrade_building&type=vis'); });
+      </script>
+      <div class="widget_content" style="display: block;">
+        <div id="buildings_visual" style="position:relative; margin: 0; width: 600px; zoom: 1.1;">
+          <img width="600" height="418" src="/graphic/<%= night ? 'visual_night' : 'visual' %>/back_none.jpg" alt="" />
+          <% if (!world.church) { %><img class="p_church" src="/graphic/visual/church_disabled.png" alt="" /><% } %>
+          <% for (const row of layers) { for (const [cls, file] of row.layers) { %><img class="<%= cls %>" src="/graphic/<%= file %>" alt="<%= buildingName(row.id) %>" /><% } } %>
+          <% for (const npc of npcs) { %><img class="npc_<%= npc %>" src="/graphic/visual/<%= npc %>.gif" alt="" /><% } %>
+          <img class="empty" src="/graphic/map/empty.png" alt="" usemap="#map" />
+          <map name="map" id="map">
+            <% for (const row of layers) { if (row.level <= 0) continue; %>
+            <area id="map_<%= row.id %>" shape="poly" coords="<%= row.shape %>" href="/game.php?village=<%= vid %>&amp;screen=<%= row.id %>" alt="<%= buildingName(row.id) %>" title="<%= buildingName(row.id) %> (<%= t('building.level', { x: row.level }) %>)" />
+            <% } %>
+          </map>
+          <% for (const row of layers) { %>
+          <div id="l_<%= row.id %>" class="l_<%= row.id %>" style="display: inline" title="<%= buildingName(row.id) %>">
+            <% if (showLevels) { %>
+            <div class="<%= night ? 'label_night' : 'label' %><%= row.level <= 0 && !row.queued ? ' label_no_lvl' : '' %>">
+              <% if (row.level > 0) { %><a href="/game.php?village=<%= vid %>&amp;screen=<%= row.id %>"><%= row.level %> <span class="building_order_level"><%= row.queued > 0 ? '+' + row.queued : '' %></span></a><% } %>
+              <span class="building_extra" style="font-size:8px !important; font-weight:bold"></span>
+            </div>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+        <div class="twl-small" style="padding: 3px 6px; display: flex; justify-content: space-between;">
+          <a href="/game.php?village=<%= vid %>&amp;screen=overview&amp;action=set_labels&amp;labels=<%= showLevels ? 0 : 1 %>"><%= showLevels ? t('game.overview.hideLevels') : t('game.overview.showLevels') %></a>
+          <a href="#" onclick="UpgradeBuilding.show_upgrade_buildings();return false;"><%= t('game.overview.build') %></a>
+          <a href="/game.php?village=<%= vid %>&amp;screen=overview&amp;action=set_visual&amp;visual=0"><%= t('game.overview.classicalOverview') %></a>
+        </div>
+      </div>
+      <% } else { %>
+      <div>
+        <table class="vis" width="100%">
+          <% for (const b of buildingRows) { %>
+          <tr id="l_<%= b.id %>"><td width="240">
+            <a href="/game.php?village=<%= vid %>&amp;screen=<%= b.id %>"><img src="/graphic/buildings/<%= b.id %>.png" alt="" /> <%= buildingName(b.id) %></a>
+            <%- t('game.overview.level', { x: b.level, extra: b.extra }) %>
+          </td></tr>
+          <% } %>
+        </table>
+        <div class="vis_item"><a href="/game.php?village=<%= vid %>&amp;screen=overview&amp;action=set_visual&amp;visual=1"><%= t('game.overview.graphicalOverview') %></a></div>
+      </div>
+      <% } %>
+    </div>
+    <div id="show_welcome" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= world.name %></h4>
+      <div class="twl-welcome"><%- String(world.description || '').split('\n').map((l) => l.replace(/[<>&]/g, '')).join('<br>') %></div>
+    </div>
+  </td>
+  <td valign="top" id="rightcolumn" class="narrow">
+    <% if (protectionEnd > now) { %>
+    <div id="show_protection" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" />Angriffsschutz</h4>
+      <div class="twl-welcome twl-small">Dein Angriffsschutz endet am <%= protectionDate %></div>
+    </div>
+    <% } %>
+    <% if (loyalty < 100) { %>
+    <div id="show_loyalty" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= t('game.report.loyalty') %></h4>
+      <div class="twl-welcome twl-small"><b><%= loyalty %>%</b> – wächst mit der Zeit wieder an.</div>
+    </div>
+    <% } %>
+    <% if (mv.out.length || mv.incoming.length) { %>
+    <div id="show_commands" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= t('buildingPlace.troopMovements') %></h4>
+      <div>
+        <table width="100%" class="vis">
+          <% for (const c of mv.incoming) { %><tr class="nowrap"><td><img src="/graphic/command/<%= c.type === 'support' ? 'support' : 'attack' %>.png" alt=""> <b class="<%= c.type === 'attack' ? 'warn' : '' %>"><%= c.type === 'attack' ? 'Angriff' : 'Unterstützung' %></b></td><td><span class="timer"><%= duration(c.arrive_at - now) %></span></td></tr><% } %>
+          <% for (const c of mv.out) { %><tr class="nowrap"><td><img src="/graphic/command/<%= c.type === 'return' ? 'back' : c.type %>.png" alt=""> <%= c.label %></td><td><span class="timer"><%= duration(c.arrive_at - now) %></span></td></tr><% } %>
+        </table>
+      </div>
+    </div>
+    <% } %>
+    <% if (queue.length) { %>
+    <div id="show_buildqueue" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= t('game.overview.widgets.buildqueue') %></h4>
+      <div><%- queueHtml %></div>
+    </div>
+    <% } %>
+    <div id="show_units" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= t('game.overview.widgets.units') %></h4>
+      <div>
+        <table class="vis" width="100%">
+          <% for (const [u, n] of troops) { %><tr><td><img src="/graphic/unit/unit_<%= u %>.png" alt="" /> <b><%= n %></b> <%= unitName(u, n) %></td></tr><% } %>
+          <% if (!troops.length) { %><tr><td class="inactive">Keine Truppen im Dorf.</td></tr><% } %>
+          <tr><td><a href="/game.php?village=<%= vid %>&amp;screen=train"><%= t('game.overview.recruit') %></a></td></tr>
+        </table>
+      </div>
+    </div>
+    <% if (note) { %>
+    <div id="show_notes" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" />Dorfnotiz</h4>
+      <div class="twl-welcome twl-small" style="white-space: pre-wrap"><%= note %></div>
+    </div>
+    <% } %>
+    <div id="show_prod" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" /><%= t('game.overview.widgets.prod') %></h4>
+      <div>
+        <table width="100%">
+          <% for (const r of physicalRes) { %>
+          <tr class="nowrap">
+            <td><span class="icon header <%= r %>"></span> <%= t('game.' + r) %></td>
+            <td><%- t('game.overview.prodHour', { x: '<strong>' + number(production[r]) + '</strong>' }) %> <img class="twl-plus" src="/graphic/plus.png" alt="" title="<%= t('game.' + r) %>" /></td>
+          </tr>
+          <% } %>
+        </table>
+      </div>
+    </div>
+    <div id="show_effects" class="vis moveable widget">
+      <h4><img class="twl-toggle" src="/graphic/minus.png" alt="" onclick="var c=$(this).closest('.widget').children('div'); c.toggle(); this.src=c.is(':visible')?'/graphic/minus.png':'/graphic/plus.png';" />Aktive Effekte</h4>
+      <div class="twl-welcome twl-small">
+        <% for (const e of effects.active) { %><img src="/graphic/map/relic.png" alt="" style="vertical-align: middle" /> <b><%= e.name %></b>: +<%= e.bonus %>% <%= e.label %><br /><% } %>
+        <% if (effects.spare) { %><a href="/game.php?village=<%= vid %>&amp;screen=relics"><b>Reliquie jetzt zuweisen …</b></a><% } %>
+        <% if (!effects.active.length && !effects.spare) { %>Keine aktiven Effekte.<% } %>
+      </div>
+    </div>
+  </td>
+</tr></table>

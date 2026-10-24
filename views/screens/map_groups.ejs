@@ -1,0 +1,41 @@
+<h2>Farbgruppen der Karte</h2>
+<p><a href="/game.php?village=<%= vid %>&amp;screen=map">« zurück zur Karte</a></p>
+<% if (message) { %><div class="error_box" style="margin-bottom:8px"><%= message %></div><% } %>
+<% for (const g of groups) { %>
+<table class="vis" width="100%" style="margin-bottom: 10px"><tbody>
+  <tr><th colspan="2">
+    <span style="display:inline-block;width:14px;height:14px;background:<%= g.color %>;border:1px solid #000;vertical-align:middle"></span> <%= g.name %>
+  </th></tr>
+  <tr><td colspan="2">
+    <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=map_groups&amp;action=update">
+      <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" />
+      <input type="text" name="name" value="<%= g.name %>" maxlength="30" /> <input type="color" name="color" value="<%= g.color %>" /> <input type="submit" class="btn" value="Speichern" />
+    </form>
+    <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=map_groups&amp;action=delete" onsubmit="return confirm('Gruppe löschen?');">
+      <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" /><input type="submit" class="btn" value="Löschen" />
+    </form>
+  </td></tr>
+  <% for (const m of g.members) { %>
+  <tr><td><%= { player: 'Spieler', ally: 'Stamm', village: 'Dorf' }[m.kind] %>: <%= m.label %></td><td align="right">
+    <form method="post" action="/game.php?village=<%= vid %>&amp;screen=map_groups&amp;action=remove"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" /><input type="hidden" name="kind" value="<%= m.kind %>" /><input type="hidden" name="ref" value="<%= m.ref_id %>" /><input type="submit" class="btn" value="Entfernen" /></form>
+  </td></tr>
+  <% } %>
+  <tr><td colspan="2">
+    <form method="post" action="/game.php?village=<%= vid %>&amp;screen=map_groups&amp;action=add">
+      <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="group" value="<%= g.id %>" />
+      <select name="kind"><option value="player">Spieler</option><option value="ally">Stamm (Name oder Kürzel)</option><option value="village">Dorf (x|y)</option></select>
+      <input type="text" name="value" /> <input type="submit" class="btn" value="Hinzufügen" />
+    </form>
+  </td></tr>
+</tbody></table>
+<% } %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=map_groups&amp;action=create">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Neue Gruppe</th></tr>
+    <tr><td>Name</td><td><input type="text" name="name" maxlength="30" /></td></tr>
+    <tr><td>Farbe</td><td><input type="color" name="color" value="#ff00ff" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Anlegen" /></td></tr>
+  </tbody></table>
+</form>
+<p class="twl-small">Spieler, Stämme und einzelne Dörfer in einer Gruppe erscheinen auf der Karte in der Farbe der Gruppe.</p>

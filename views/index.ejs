@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html dir="ltr" class="no-js">
+<head>
+  <title><%= t('index.title') %></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b1209">
+  <link rel="stylesheet" type="text/css" href="/home.css" />
+</head>
+<body dir="ltr" id="home" class="<%= user ? 'logged-in' : '' %>">
+<script>var dataLayer = [];</script>
+<div class="hm-bg"></div>
+<header class="hm-top">
+  <a class="hm-brand" href="/"><%= t('index.twlan') %></a>
+  <div class="hm-top-right">
+    <select aria-label="Language" onchange="location.href='/page/lang?l=' + this.value">
+      <% for (const [code, name] of languages) { %><option value="<%= code %>"<%= code === currentLang ? ' selected' : '' %>><%= name %></option><% } %>
+    </select>
+    <% if (user) { %><a class="hm-link" id="headerlink-logout" href="/page/logout"><%= t('index.logout') %></a><% } %>
+  </div>
+</header>
+
+<main class="hm-main">
+  <section class="hm-intro">
+    <h1><%= t('index.twlan') %></h1>
+    <p class="hm-sub"><%= t('index.imageTitle') %></p>
+    <p class="hm-world"><span><%= world.name %></span></p>
+  </section>
+
+  <section class="hm-card">
+    <% if (!user) { %>
+    <div class="hm-tabs" role="tablist">
+      <button type="button" class="on" data-tab="login" role="tab"><%= t('index.login') %></button>
+      <button type="button" data-tab="register" role="tab"><%= t('index.register').replace(/!$/, '') %></button>
+    </div>
+
+    <form action="#" method="post" id="login" class="hm-pane" data-pane="login">
+      <label for="login_username"><%= t('index.username') %></label>
+      <input type="text" id="login_username" name="username" autocomplete="username" tabindex="1" autofocus />
+      <label for="login_password"><%= t('index.password') %></label>
+      <input type="password" id="login_password" name="password" autocomplete="current-password" tabindex="2" />
+      <div class="hm-row">
+        <label class="hm-check" for="remember-me"><input type="checkbox" id="remember-me" name="remember-me" checked="checked"> <%= t('index.stayLoggedIn') %></label>
+        <a href="/page/recover"><%= t('index.forgotPassword').split('/')[0] %>?</a>
+      </div>
+      <button class="btn-login hm-btn" type="submit" tabindex="3"><%= t('index.login') %></button>
+    </form>
+
+    <form action="#" method="post" id="register" class="hm-pane" data-pane="register" hidden>
+      <div class="form-element" id="form-element-name">
+        <label for="register_username"><%= t('index.username') %></label>
+        <div class="hm-field">
+          <input type="text" id="register_username" name="register_username" class="require-validation" data-type="name" value="" autocomplete="username" tabindex="4" />
+          <span class="validation validation-none"></span>
+        </div>
+        <div class="error-message error-username"><p class="message"></p>
+          <div class="message-suggestion-container" style="display:none"><div class="message-suggestion"><ul></ul></div></div>
+        </div>
+      </div>
+      <div class="form-element" id="form-element-password">
+        <label for="register_password"><%= t('index.password') %></label>
+        <div class="hm-field">
+          <input type="password" id="register_password" name="register_password" class="require-validation" data-type="password" value="" autocomplete="new-password" tabindex="5" />
+          <span class="validation validation-none"></span>
+        </div>
+        <div class="error-message error-password"><p class="message"></p></div>
+      </div>
+      <a title="<%= t('index.register') %>" id="register-button" href="#" class="hm-btn hm-btn-cta" tabindex="6"><span><%= t('index.register') %></span></a>
+      <input type="submit" class="is-hidden" hidden />
+    </form>
+    <% } else { %>
+    <div id="world-select" class="hm-pane">
+      <p class="hm-hello"><%= t('index.loginTitle', { user: user.name }) %></p>
+      <a class="hm-btn hm-btn-cta" href="/page/play"><span><%= world.name %> – <%= t('join.join') %></span></a>
+    </div>
+    <% } %>
+  </section>
+</main>
+
+<footer class="hm-foot"><%= t('index.twlan') %> &middot; <%= world.name %></footer>
+
+<script src="/start.js"></script>
+<script>
+  StartPage.uris = { auth: '/page/auth', register: '/page/register', register_validate: '/page/register/validate', support: '/page/support' };
+  $(function () {
+    StartPage.init && StartPage.init();
+    $('.hm-tabs button').on('click', function () {
+      var tab = $(this).data('tab');
+      $('.hm-tabs button').removeClass('on').filter(this).addClass('on');
+      $('.hm-pane[data-pane]').each(function () { this.hidden = $(this).data('pane') !== tab; });
+      $('.hm-pane[data-pane=' + tab + '] input:visible').first().focus();
+    });
+    if (location.hash === '#register') $('.hm-tabs button[data-tab=register]').click();
+  });
+</script>
+</body>
+</html>

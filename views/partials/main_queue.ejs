@@ -1,0 +1,39 @@
+<% if (queue.length) { %>
+<div id="buildqueue_wrap">
+  <table id="build_queue" class="vis">
+    <tbody id="buildqueue">
+      <tr>
+        <th width="250"><%= t('buildingMain.eventBuilding') %></th>
+        <th width="100"><%= t('buildingMain.eventTime') %></th>
+        <th width="150"><%= t('buildingMain.eventFinish') %></th>
+        <th><%= t('buildingMain.eventCancel') %></th>
+        <th style="background:none !important;"></th>
+      </tr>
+      <% queue.forEach((q, i) => { const active = i === 0; const remaining = q.finish_at - now; %>
+      <tr class="<%= active ? 'lit nodrag' : 'sortable_row nowrap' %>"<% if (!active) { %> id="buildorder_<%= i %>"<% } %>>
+        <td width="250" class="nowrap lit-item">
+          <img src="/graphic/buildings/mid/<%= buildingImage(q.building, q.level) %>" title="" alt="" class="bmain_list_img">
+          <%= buildingName(q.building) %><br> <%= q.kind === 'destroy' ? t('buildingMain.levelDestroy') : t('building.level', { x: q.level }) %>
+        </td>
+        <td width="100" class="nowrap lit-item"><span<% if (active) { %> class="timer"<% } %>><%= duration(remaining) %></span></td>
+        <td class="lit-item" width="170"><%= clock(q.finish_at) %></td>
+        <td class="lit-item">
+          <% if (active) { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=main&amp;mode=<%= mode %>&amp;action=finish&amp;h=<%= csrf %>" title="Premium-Punkte"><%= ppCost(remaining) %> PP: sofort</a> <% } %>
+          <a class="btn btn-cancel" href="game.php?village=<%= vid %>&amp;screen=main&amp;mode=build&amp;action=cancel&amp;id=<%= q.id %>" onclick="return BuildingMain.cancel(<%= q.id %>);"><%= t('buildingMain.cancel') %></a>
+        </td>
+        <td class="lit-item" style="background-color: transparent !important;"><% if (!active && queue.length > 2) { %><div style="width: 11px; height:11px; background-image: url(/graphic/sorthandle.png); cursor:pointer" class="bqhandle" title="<%= t('buildingMain.changeOrder') %>"></div><% } %></td>
+      </tr>
+      <% if (active) { %>
+      <tr class="lit"><td colspan="5" style="padding: 0">
+        <div class="order-progress" data-progress="{&quot;progress&quot;:[],&quot;slot_time&quot;:<%= Math.round(q.finish_at - q.start_at) %>,&quot;slot_elapsed&quot;:<%= Math.max(0, Math.round(now - q.start_at)) %>,&quot;percentage_complete&quot;:&quot;0&quot;}"></div>
+      </td></tr>
+      <% } }) %>
+      <% if (queueFactor > 1) { %>
+      <tr class="nodrag"><td colspan="4"><%- t('buildingMain.queueInfo', { x: '<b>' + Math.round((queueFactor - 1) * 100) + '%</b>' }) %><br /><small><%= t('buildingMain.queueText') %></small></td></tr>
+      <% } %>
+    </tbody>
+  </table>
+  <br />
+  <script type="text/javascript">BuildingMain.init_buildqueue('/game.php?village=<%= vid %>&screen=main&mode=<%= mode %>&ajaxaction=buildorder_reorder');</script>
+</div>
+<% } %>

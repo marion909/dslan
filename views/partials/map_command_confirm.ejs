@@ -1,0 +1,17 @@
+<form id="command-confirm-form" action="#" method="post">
+  <input type="hidden" name="target" value="<%= confirm.target.id %>" />
+  <input type="hidden" name="type" value="<%= confirm.type %>" />
+  <h3><%= t(confirm.type === 'support' ? 'buildingPlace.confirmSupport' : 'buildingPlace.confirmAttack', { name: confirm.target.name }) %></h3>
+  <table class="vis" width="300"><tbody>
+    <tr><td><%= t('buildingPlace.target') %>:</td><td><%= confirm.target.name %> (<%= confirm.target.x %>|<%= confirm.target.y %>)</td></tr>
+    <tr><td><%= t('buildingPlace.duration') %>:</td><td><%= duration(confirm.seconds) %></td></tr>
+    <tr><td><%= t('buildingPlace.arrival') %>:</td><td><%= clock(now + confirm.seconds) %></td></tr>
+    <% if (confirm.type === 'attack') { %><tr><td><%= t('buildingPlace.moral') %>:</td><td><b><%= Math.round(confirm.morale * 100) %>%</b></td></tr><% } %>
+  </tbody></table><br />
+  <table class="vis"><tbody>
+    <tr><% for (const u of Object.keys(confirm.units)) { %><th width="50"><img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt=""></th><% } %></tr>
+    <tr><% for (const n of Object.values(confirm.units)) { %><td class="unit-item"><%= n %></td><% } %></tr>
+  </tbody></table><br />
+  <% for (const [u, n] of Object.entries(confirm.units)) { %><input type="hidden" name="<%= u %>" value="<%= n %>"><% } %>
+  <input class="btn <%= confirm.type === 'support' ? 'btn-support' : 'btn-attack' %>" type="submit" value="<%= confirm.type === 'support' ? t('buildingPlace.support') : t('buildingPlace.attack') %>">
+</form>

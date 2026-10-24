@@ -1,0 +1,256 @@
+<h2><%= t('game.menu.ally.title') %></h2>
+<% if (message) { %><div class="<%= ok ? 'success_box' : 'error_box' %>" style="margin-bottom: 8px"><%= message %></div><% } %>
+
+<% if (noAlly) { %>
+<% if (invites.length) { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="3">Einladungen</th></tr>
+  <% for (const i of invites) { %>
+  <tr><td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= i.ally_id %>"><%= i.name %> (<%= i.tag %>)</a></td><td><%= dateText(i.time) %></td>
+    <td align="right">
+      <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=ally&amp;action=accept"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="ally" value="<%= i.ally_id %>" /><input type="submit" class="btn" value="Annehmen" /></form>
+      <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=ally&amp;action=decline"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="ally" value="<%= i.ally_id %>" /><input type="submit" class="btn" value="Ablehnen" /></form>
+    </td></tr>
+  <% } %>
+</tbody></table><br />
+<% } %>
+<% if (tribes.length) { %>
+<table class="vis" width="100%" style="margin-bottom: 10px"><tbody>
+  <tr><th>Stamm</th><th>Mitglieder</th><th>Punkte</th><th>Bewerbung</th></tr>
+  <% for (const tr of tribes) { %><tr>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= tr.id %>"><%= tr.name %> (<%= tr.tag %>)</a></td><td><%= tr.members %></td><td><%= number(tr.points) %></td>
+    <td>
+      <% if (tr.applied) { %>
+      <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=ally&amp;action=withdraw"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="ally" value="<%= tr.id %>" />beworben <input type="submit" class="btn" value="Zurückziehen" /></form>
+      <% } else { %>
+      <form method="post" style="display:inline" action="/game.php?village=<%= vid %>&amp;screen=ally&amp;action=apply"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="ally" value="<%= tr.id %>" /><input type="text" name="text" maxlength="500" placeholder="Nachricht (optional)" size="22" /> <input type="submit" class="btn" value="Bewerben" /></form>
+      <% } %>
+    </td></tr><% } %>
+</tbody></table>
+<% } %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=ally&amp;action=found">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Stamm gründen</th></tr>
+    <tr><td>Name</td><td><input type="text" name="name" maxlength="32" /></td></tr>
+    <tr><td>Kürzel</td><td><input type="text" name="tag" maxlength="6" size="8" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Gründen" /></td></tr>
+  </tbody></table>
+</form>
+<p class="twl-small">Du bist in keinem Stamm. Lass dich einladen oder gründe einen eigenen.</p>
+
+<% } else { %>
+<table class="vis modemenu" style="margin-bottom: 8px"><tbody><tr>
+  <% for (const m of modes) {
+       if (m === 'invite' && !can.invite) continue;
+       const label = { overview: 'Übersicht', profile: 'Profil', members: 'Mitglieder', invite: 'Einladen', diplomaty: 'Diplomatie', forum: 'Forum', reservations: 'Adelsplaner', events: 'Ereignisse', props: 'Einstellungen' }[m]; %>
+  <td<%- m === mode ? ' class="selected"' : '' %> style="min-width: 80px"><a href="<%= base %>&amp;mode=<%= m %>"><%= label %></a></td>
+  <% } %>
+</tr></tbody></table>
+
+<% if (mode === 'overview') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2"><%= ally.name %> (<%= ally.tag %>)</th></tr>
+  <tr><td width="160">Rang</td><td><%= rank %> (<%= number(points) %> Punkte)</td></tr>
+  <tr><td>Mitglieder</td><td><%= members.length %> / <%= world.tribeMemberLimit %></td></tr>
+  <% if (ally.intro) { %><tr><td valign="top">Mitteilung</td><td style="white-space: pre-wrap"><%= ally.intro %></td></tr><% } %>
+  <% if (ally.description) { %><tr><td valign="top">Beschreibung</td><td style="white-space: pre-wrap"><%= ally.description %></td></tr><% } %>
+</tbody></table>
+<p><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= ally.id %>">Öffentliches Profil</a>
+  <% if (can.mail) { %> &middot; <a href="/game.php?village=<%= vid %>&amp;screen=mail&amp;mode=mass_out">Rundschreiben</a><% } %></p>
+
+<% } else if (mode === 'profile') { %>
+<form method="post" action="<%= base %>&amp;mode=profile&amp;action=save_profile">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="2">Stammesprofil</th></tr>
+    <tr><td valign="top" width="160">Mitteilung für Mitglieder</td><td><textarea name="intro" rows="4" cols="70" <%= can.profile ? '' : 'readonly' %>><%= ally.intro %></textarea></td></tr>
+    <tr><td valign="top">Öffentliche Beschreibung</td><td><textarea name="description" rows="10" cols="70" <%= can.profile ? '' : 'readonly' %>><%= ally.description %></textarea></td></tr>
+    <% if (can.profile) { %><tr><td></td><td><input type="submit" class="btn" value="Speichern" /></td></tr><% } %>
+  </tbody></table>
+</form>
+
+<% } else if (mode === 'members') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Name</th><th>Titel</th><th>Punkte</th><th>Rechte</th><% if (can.members) { %><th></th><% } %></tr>
+  <% for (const m of members) { %>
+  <tr>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= m.id %>"><%= m.name %></a><%= m.isLeader ? ' ★' : '' %></td>
+    <td><%= m.ally_title %></td><td><%= number(m.points) %></td>
+    <td class="twl-small"><%= m.isLeader ? 'alle' : m.rights.map((r) => rights[r]).join(', ') %></td>
+    <% if (can.members) { %>
+    <td>
+      <% if (!m.isLeader) { %>
+      <form method="post" action="<%= base %>&amp;mode=members&amp;action=member" style="display:inline">
+        <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="user" value="<%= m.id %>" />
+        <input type="text" name="title" value="<%= m.ally_title %>" size="10" placeholder="Titel" />
+        <% for (const [key, label] of Object.entries(rights)) { %><label class="twl-small" title="<%= label %>"><input type="checkbox" name="rights" value="<%= key %>"<%= m.rights.includes(key) ? ' checked' : '' %> /><%= label.split(' ')[0] %></label> <% } %>
+        <input type="submit" class="btn" value="OK" />
+      </form>
+      <form method="post" action="<%= base %>&amp;mode=members&amp;action=kick" style="display:inline" onsubmit="return confirm('Wirklich ausschließen?');"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="user" value="<%= m.id %>" /><input type="submit" class="btn" value="Ausschließen" /></form>
+      <% if (leader) { %><form method="post" action="<%= base %>&amp;mode=members&amp;action=lead" style="display:inline" onsubmit="return confirm('Führung wirklich übergeben?');"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="user" value="<%= m.id %>" /><input type="submit" class="btn" value="Führung übergeben" /></form><% } %>
+      <% } %>
+    </td>
+    <% } %>
+  </tr>
+  <% } %>
+</tbody></table>
+
+<% } else if (mode === 'invite') { %>
+<% if (applications.length) { %>
+<table class="vis" width="100%" style="margin-bottom: 10px"><tbody>
+  <tr><th colspan="3">Bewerbungen</th></tr>
+  <% for (const a of applications) { %><tr><td><a href="/game.php?village=<%= vid %>&amp;screen=info_player&amp;id=<%= a.user_id %>"><%= a.name %></a><br /><span class="twl-small"><%= a.text %></span></td><td><%= dateText(a.time) %></td>
+    <td align="right">
+      <% for (const [accept, label] of [['1', 'Annehmen'], ['0', 'Ablehnen']]) { %><form method="post" style="display:inline" action="<%= base %>&amp;mode=invite&amp;action=applicant"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="user" value="<%= a.user_id %>" /><input type="hidden" name="accept" value="<%= accept %>" /><input type="submit" class="btn" value="<%= label %>" /></form> <% } %>
+    </td></tr><% } %>
+</tbody></table>
+<% } %>
+<form method="post" action="<%= base %>&amp;mode=invite&amp;action=invite">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  Spielername: <input type="text" name="name" /> <input type="submit" class="btn" value="Einladen" />
+</form><br />
+<table class="vis" width="100%"><tbody>
+  <tr><th>Offene Einladungen</th><th>Gesendet</th><th></th></tr>
+  <% for (const i of invites) { %><tr><td><%= i.name %></td><td><%= dateText(i.time) %></td><td><form method="post" action="<%= base %>&amp;mode=invite&amp;action=uninvite"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="user" value="<%= i.user_id %>" /><input type="submit" class="btn" value="Zurückziehen" /></form></td></tr><% } %>
+  <% if (!invites.length) { %><tr><td colspan="3" class="inactive">Keine offenen Einladungen.</td></tr><% } %>
+</tbody></table>
+
+<% } else if (mode === 'diplomaty') { %>
+<% if (proposals.length) { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th colspan="2">Vorschläge an euch</th></tr>
+  <% for (const p of proposals) { %><tr><td><%= p.from_name %> (<%= p.from_tag %>): <%= p.type === 'prop_partner' ? 'Bündnis' : 'Nichtangriffspakt' %></td>
+    <td align="right"><% if (can.diplomacy) { %>
+      <form method="post" style="display:inline" action="<%= base %>&amp;mode=diplomaty&amp;action=answer"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="from" value="<%= p.ally_id %>" /><input type="hidden" name="accept" value="1" /><input type="submit" class="btn" value="Annehmen" /></form>
+      <form method="post" style="display:inline" action="<%= base %>&amp;mode=diplomaty&amp;action=answer"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="from" value="<%= p.ally_id %>" /><input type="hidden" name="accept" value="0" /><input type="submit" class="btn" value="Ablehnen" /></form>
+    <% } %></td></tr><% } %>
+</tbody></table><br />
+<% } %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Vertrag</th><th>Stamm</th><th></th></tr>
+  <% for (const c of contracts) { %><tr>
+    <td><%= { partner: 'Bündnis', nap: 'Nichtangriffspakt', enemy: 'Krieg', prop_partner: 'Bündnis (angefragt)', prop_nap: 'Nichtangriffspakt (angefragt)' }[c.type] %></td>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_ally&amp;id=<%= c.other_id %>"><%= c.other_name %> (<%= c.other_tag %>)</a></td>
+    <td align="right"><% if (can.diplomacy) { %><form method="post" action="<%= base %>&amp;mode=diplomaty&amp;action=cancel_contract"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="other" value="<%= c.other_id %>" /><input type="submit" class="btn" value="Beenden" /></form><% } %></td></tr><% } %>
+  <% if (!contracts.length) { %><tr><td colspan="3" class="inactive">Keine Verträge.</td></tr><% } %>
+</tbody></table>
+<% if (can.diplomacy) { %>
+<form method="post" action="<%= base %>&amp;mode=diplomaty&amp;action=propose" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  Stamm (Name oder Kürzel): <input type="text" name="other" />
+  <select name="type"><option value="partner">Bündnis</option><option value="nap">Nichtangriffspakt</option><option value="enemy">Krieg erklären</option></select>
+  <input type="submit" class="btn" value="Senden" />
+</form>
+<% } %>
+
+<% } else if (mode === 'reservations') { %>
+<p class="twl-small">Reservierte Dörfer sind für Stammesmitglieder auf der Karte markiert, damit sich niemand ins Gehege kommt. Reservierungen verfallen nach einer Weile.</p>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Dorf</th><th>Reserviert von</th><th>Seit</th><th></th></tr>
+  <% for (const r of reservations) { %><tr>
+    <td><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= r.village_id %>"><%= r.village %> (<%= r.x %>|<%= r.y %>)</a></td><td><%= r.owner %></td><td><%= dateText(r.time) %></td>
+    <td align="right"><% if (r.mine || can.members) { %><form method="post" action="<%= base %>&amp;mode=reservations&amp;action=unreserve"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="village" value="<%= r.village_id %>" /><input type="submit" class="btn" value="Aufheben" /></form><% } %></td></tr><% } %>
+  <% if (!reservations.length) { %><tr><td colspan="4" class="inactive">Keine Reservierungen.</td></tr><% } %>
+</tbody></table>
+<form method="post" action="<%= base %>&amp;mode=reservations&amp;action=reserve" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" /> Dorf reservieren (x|y): <input type="text" name="coord" size="9" /> <input type="submit" class="btn" value="Reservieren" />
+</form>
+
+<% } else if (mode === 'events') { %>
+<table class="vis" width="100%"><tbody>
+  <tr><th width="150">Zeit</th><th>Ereignis</th></tr>
+  <% for (const e of events) { %><tr><td class="nowrap"><%= dateText(e.time) %></td><td><%= e.text %></td></tr><% } %>
+  <% if (!events.length) { %><tr><td colspan="2" class="inactive">Keine Ereignisse.</td></tr><% } %>
+</tbody></table>
+
+<% } else if (mode === 'forum') { %>
+<% if (typeof thread !== 'undefined') { %>
+<h3><%= thread.title %> <%- thread.closed ? '<span class="inactive">(geschlossen)</span>' : '' %></h3>
+<% if (poll) { %>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;thread=<%= thread.id %>&amp;action=vote" style="margin-bottom: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th colspan="3">📊 <%= poll.question %></th></tr>
+    <% for (const o of poll.options) { const pct = poll.total ? Math.round(o.votes * 100 / poll.total) : 0; %>
+    <tr><td width="20"><input type="radio" name="option" value="<%= o.id %>"<%= poll.mine === o.id ? ' checked' : '' %><%= thread.closed ? ' disabled' : '' %> /></td><td><%= o.text %></td>
+      <td width="220"><div style="background: #c1a264; width: <%= pct %>%; min-width: 2px; height: 10px; display: inline-block"></div> <%= o.votes %> (<%= pct %>%)</td></tr>
+    <% } %>
+    <% if (!thread.closed) { %><tr><td colspan="3"><input type="submit" class="btn" value="<%= poll.mine ? 'Stimme ändern' : 'Abstimmen' %>" /> <span class="twl-small"><%= poll.total %> Stimmen</span></td></tr><% } %>
+  </tbody></table>
+</form>
+<% } %>
+<table class="vis" width="100%"><tbody>
+  <% for (const p of posts) { %>
+  <tr><td width="140" valign="top"><b><%= p.author %></b><br /><span class="twl-small"><%= dateText(p.time) %></span></td>
+    <td style="white-space: pre-wrap"><%= p.body %>
+      <% if (can.forum || p.user_id === me.id) { %><form method="post" action="<%= base %>&amp;mode=forum&amp;thread=<%= thread.id %>&amp;action=moderate" style="float:right"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="do" value="delete_post" /><input type="hidden" name="post" value="<%= p.id %>" /><input type="submit" class="btn" value="Löschen" /></form><% } %></td></tr>
+  <% } %>
+</tbody></table>
+<% if (!thread.closed || can.forum) { %>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;thread=<%= thread.id %>&amp;action=reply" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" /><textarea name="body" rows="6" cols="70"></textarea><br /><input type="submit" class="btn" value="Antworten" />
+</form>
+<% } %>
+<% if (can.forum) { %>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;thread=<%= thread.id %>&amp;action=moderate" style="margin-top: 8px">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <input type="hidden" name="do" value="<%= thread.closed ? 'open' : 'close' %>" /><input type="submit" class="btn" value="<%= thread.closed ? 'Öffnen' : 'Schließen' %>" />
+</form>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;thread=<%= thread.id %>&amp;action=moderate" style="display:inline" onsubmit="return confirm('Thema löschen?');">
+  <input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="do" value="delete" /><input type="submit" class="btn" value="Thema löschen" />
+</form>
+<% } %>
+<p><a href="<%= base %>&amp;mode=forum">« zur Übersicht</a></p>
+<% } else if (newThread) { %>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;action=thread">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Neues Thema</th></tr>
+    <% if (boards.length) { %><tr><td>Unterforum</td><td><select name="board"><option value="">Hauptforum</option><% for (const b of boards) { %><option value="<%= b.id %>"<%= board && board.id === b.id ? ' selected' : '' %>><%= b.name %></option><% } %></select></td></tr><% } %>
+    <tr><td>Titel</td><td><input type="text" name="title" size="60" maxlength="120" /></td></tr>
+    <tr><td valign="top">Text</td><td><textarea name="body" rows="10" cols="70"></textarea></td></tr>
+    <tr><td valign="top">Umfrage<br /><span class="twl-small">(optional)</span></td><td><input type="text" name="poll" size="60" maxlength="150" placeholder="Frage" /><br /><textarea name="options" rows="4" cols="40" placeholder="Eine Antwort pro Zeile (mindestens 2)"></textarea></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Erstellen" /></td></tr>
+  </tbody></table>
+</form>
+<% } else { %>
+<p>
+  <a class="btn" href="<%= base %>&amp;mode=forum&amp;new=1<%= board ? '&amp;board=' + board.id : '' %>">Neues Thema</a>
+  &nbsp; <a href="<%= base %>&amp;mode=forum"<%= board ? '' : ' style="font-weight:bold"' %>>Hauptforum</a>
+  <% for (const b of boards) { %> &middot; <a href="<%= base %>&amp;mode=forum&amp;board=<%= b.id %>"<%= board && board.id === b.id ? ' style="font-weight:bold"' : '' %>><%= b.name %> (<%= b.count %>)</a><% } %>
+</p>
+<% if (can.forum) { %>
+<form method="post" action="<%= base %>&amp;mode=forum&amp;action=board_add" style="display:inline"><input type="hidden" name="h" value="<%= csrf %>" /><input type="text" name="name" size="14" maxlength="40" placeholder="Neues Unterforum" /><input type="submit" class="btn" value="+" /></form>
+<% if (board) { %><form method="post" action="<%= base %>&amp;mode=forum&amp;action=board_delete" style="display:inline" onsubmit="return confirm('Unterforum löschen? Die Themen wandern ins Hauptforum.');"><input type="hidden" name="h" value="<%= csrf %>" /><input type="hidden" name="board" value="<%= board.id %>" /><input type="submit" class="btn" value="Dieses Unterforum löschen" /></form><% } %>
+<% } %>
+<table class="vis" width="100%"><tbody>
+  <tr><th>Thema</th><th>Autor</th><th>Beiträge</th><th>Letzte Aktivität</th></tr>
+  <% for (const th of threads) { const unread = (th.read_at || 0) < th.updated_at && th.user_id !== me.id; %>
+  <tr><td><a href="<%= base %>&amp;mode=forum&amp;thread=<%= th.id %>"><%= th.poll ? '📊 ' : '' %><%= th.title %></a> <%- unread ? '<b>(neu)</b>' : '' %> <%- th.closed ? '<span class="inactive">(geschlossen)</span>' : '' %></td><td><%= th.author %></td><td><%= th.posts %></td><td class="nowrap"><%= dateText(th.updated_at) %></td></tr>
+  <% } %>
+  <% if (!threads.length) { %><tr><td colspan="4" class="inactive">Noch keine Themen.</td></tr><% } %>
+</tbody></table>
+<% } %>
+
+<% } else if (mode === 'props') { %>
+<% if (leader) { %>
+<form method="post" action="<%= base %>&amp;mode=props&amp;action=rename">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis"><tbody>
+    <tr><th colspan="2">Name und Kürzel</th></tr>
+    <tr><td>Name</td><td><input type="text" name="name" value="<%= ally.name %>" maxlength="32" /></td></tr>
+    <tr><td>Kürzel</td><td><input type="text" name="tag" value="<%= ally.tag %>" maxlength="6" size="8" /></td></tr>
+    <tr><td></td><td><input type="submit" class="btn" value="Ändern" /></td></tr>
+  </tbody></table>
+</form><br />
+<form method="post" action="<%= base %>&amp;mode=props&amp;action=disband" onsubmit="return confirm('Stamm wirklich auflösen? Das kann nicht rückgängig gemacht werden.');">
+  <input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="Stamm auflösen" />
+</form>
+<% } else { %>
+<form method="post" action="<%= base %>&amp;mode=props&amp;action=leave" onsubmit="return confirm('Stamm wirklich verlassen?');">
+  <input type="hidden" name="h" value="<%= csrf %>" /><input type="submit" class="btn" value="Stamm verlassen" />
+</form>
+<% } %>
+<% } %>
+<% } %>

@@ -1,0 +1,22 @@
+<% if (events.length) { %>
+<div id="current_research">
+  <table id="build_queue" class="vis">
+    <thead><tr>
+      <th width="250"><%= t('buildingSmith.eventResearch') %></th>
+      <th width="100"><%= t('buildingSmith.eventTime') %></th>
+      <th width="150"><%= t('buildingSmith.eventFinish') %></th>
+      <th><%= t('buildingSmith.eventCancel') %></th>
+    </tr></thead>
+    <tbody>
+      <% events.forEach((e, i) => { %>
+      <tr class="<%= i === 0 ? 'lit nodrag' : 'nowrap' %>">
+        <td width="250" class="nowrap lit-item"><%= unitName(e.unit, 1) %> (<%= t('building.level', { x: 1 }) %>)</td>
+        <td width="100" class="nowrap lit-item"><span<% if (i === 0) { %> class="timer"<% } %>><%= duration(e.finish_at - now) %></span></td>
+        <td class="lit-item" width="170"><%= clock(e.finish_at) %></td>
+        <td class="lit-item"><% if (i === 0) { %><a class="btn" href="/game.php?village=<%= vid %>&amp;screen=smith&amp;action=finish&amp;h=<%= csrf %>"><%= ppCost(e.finish_at - now) %> PP: sofort</a> <% } %><a class="btn btn-cancel" href="#" onclick="return BuildingSmith.cancel(<%= e.id %>);"><%= t('buildingMain.cancel') %></a></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table><br />
+</div>
+<% } %>

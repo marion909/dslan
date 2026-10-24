@@ -1,0 +1,70 @@
+<% const d = view.data; const kind = d.kind || 'battle'; %>
+  <table class="vis" width="470"><tbody><tr><td class="nopad">
+    <table class="vis"><tbody>
+      <tr><th width="140"><%= t('game.report.subject') %></th><th width="400"><img src="/graphic/dots/<%= view.color %>.png" alt=""> <%= view.title %></th></tr>
+      <tr><td><%= t('game.report.time') %></td><td><%= dateText(view.time) %></td></tr>
+      <% if (kind === 'battle') { %>
+      <tr><td colspan="2"><h3 style="margin:4px 0"><%= t('game.report.won', { player: d.win ? (d.attacker.user || '-') : (d.defender.user || 'Barbaren') }) %></h3></td></tr>
+      <tr><td><%= t('game.report.luck') %></td><td><%= d.luck >= 0 ? '+' : '' %><%= (d.luck * 100).toFixed(1) %>% &middot; <%= t('buildingPlace.moral') %>: <%= Math.round(d.morale * 100) %>%<%= d.night ? ' · Nachtbonus' : '' %></td></tr>
+      <% if (d.conquered) { %><tr><td colspan="2"><h3 style="margin:4px 0; color:#080">Das Dorf wurde erobert!</h3></td></tr><% } %>
+      <% if (d.loyalty) { %><tr><td><%= t('game.report.loyalty') %></td><td><%- t('game.report.loyaltyChange', { from: d.loyalty.from, to: d.loyalty.to }) %></td></tr><% } %>
+      <% } %>
+    </tbody></table><br>
+
+    <% if (kind === 'battle' || kind === 'spy') { %>
+    <% for (const [label, side] of [[t('game.report.attacker'), d.attacker], [t('game.report.defender'), d.defender]]) { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><th width="100"><%= label %>:</th><th><%= side.user || 'Barbaren' %></th></tr>
+      <tr><td><%= t('game.report.origin') %>:</td><td><% if (typeof vid !== 'undefined') { %><a href="/game.php?village=<%= vid %>&amp;screen=info_village&amp;id=<%= side.villageId %>"><%= side.village %> (<%= side.x %>|<%= side.y %>)</a><% } else { %><%= side.village %> (<%= side.x %>|<%= side.y %>)<% } %></td></tr>
+      <% if (!(kind === 'spy' && side === d.defender)) { %>
+      <tr><td colspan="2" style="padding:0"><table class="vis" width="100%"><tbody>
+        <tr><td></td><% for (const u of unitIds) { %><td width="35"><img src="/graphic/unit/unit_<%= u %>.png" title="<%= unitName(u, 2) %>" alt=""></td><% } %></tr>
+        <tr><td><%= t('game.report.amount') %>:</td><% for (const u of unitIds) { const n = (side.units[u] || 0); %><td class="<%= n === 0 ? 'hidden' : '' %>"><%= n %></td><% } %></tr>
+        <tr><td><%= t('game.report.losses') %>:</td><% for (const u of unitIds) { const n = (side.losses[u] || 0); %><td class="<%= n === 0 ? 'hidden' : '' %>"><%= n %></td><% } %></tr>
+      </tbody></table></td></tr>
+      <% } %>
+    </tbody></table><br>
+    <% } %>
+    <% if (kind === 'battle' && d.supporters && d.supporters.length) { %>
+    <% for (const s2 of d.supporters) { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><th width="100">Unterstützung:</th><th><%= s2.user || '-' %> – <%= s2.village %> (<%= s2.x %>|<%= s2.y %>)</th></tr>
+      <tr><td colspan="2"><% for (const u of unitIds) { const n = (s2.units[u] || 0); if (!n) continue; %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> (-<%= s2.losses[u] || 0 %>) &nbsp;<% } %></td></tr>
+    </tbody></table><br>
+    <% } %>
+    <% } %>
+    <% if (kind === 'battle' && d.win) { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><th colspan="2">Beute</th></tr>
+      <tr><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= d.loot[r] %> &nbsp;<% } %></td><td><%= number(physicalRes.reduce((s, r) => s + d.loot[r], 0)) %>/<%= number(d.capacity) %></td></tr>
+      <% for (const [b, x] of Object.entries(d.damage || {})) { %>
+      <tr><td colspan="2"><%- b === 'wall' ? t('buildingPlace.damagedWall', { before: x.before, after: x.after }) : buildingName(b) + ': ' + t('building.level', { x: x.before }) + ' → ' + t('building.level', { x: x.after }) %></td></tr>
+      <% } %>
+    </tbody></table><br>
+    <% } %>
+    <% if (kind === 'battle' && d.knightFinds && (d.knightFinds.attacker || d.knightFinds.defender)) { %>
+    <table class="vis" width="100%"><tbody><tr><td>Dein Paladin hat einen Gegenstand gefunden: <b><%= t('knight.' + (d.knightFinds.attacker || d.knightFinds.defender)) %></b></td></tr></tbody></table><br>
+    <% } %>
+    <% if (d.intel) { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><th colspan="2">Spähbericht</th></tr>
+      <tr><td width="120">Rohstoffe</td><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= d.intel.resources[r] %> &nbsp;<% } %></td></tr>
+      <tr><td valign="top">Gebäude</td><td><% for (const [b, l] of Object.entries(d.intel.buildings)) { %><%= buildingName(b) %> <%= l %><br><% } %></td></tr>
+      <tr><td>Truppen</td><td><% for (const [u, n] of Object.entries(d.intel.units || {})) { if (!n) continue; %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> &nbsp;<% } %></td></tr>
+    </tbody></table>
+    <% } else if (kind === 'spy') { %><p class="warn">Alle Späher wurden entdeckt. Es konnten keine Informationen gewonnen werden.</p><% } %>
+
+    <% } else if (kind === 'support') { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><td width="100">Von</td><td><%= d.from.village %> (<%= d.from.x %>|<%= d.from.y %>)<%= d.from.user ? ' – ' + d.from.user : '' %></td></tr>
+      <tr><td>Nach</td><td><%= d.to.village %> (<%= d.to.x %>|<%= d.to.y %>) – <%= d.to.user %></td></tr>
+      <tr><td>Truppen</td><td><% for (const [u, n] of Object.entries(d.units)) { %><img src="/graphic/unit/unit_<%= u %>.png" alt="" title="<%= unitName(u, 2) %>"> <%= n %> &nbsp;<% } %></td></tr>
+    </tbody></table>
+    <% } else if (kind === 'trade') { %>
+    <table class="vis" width="100%"><tbody>
+      <tr><td width="100">Von</td><td><%= d.from.village %> (<%= d.from.x %>|<%= d.from.y %>)<%= d.from.user ? ' – ' + d.from.user : '' %></td></tr>
+      <tr><td>Nach</td><td><%= d.to.village %> (<%= d.to.x %>|<%= d.to.y %>) – <%= d.to.user %></td></tr>
+      <tr><td>Rohstoffe</td><td><% for (const r of physicalRes) { %><span class="icon header <%= r %>"></span> <%= d.res[r] || 0 %> &nbsp;<% } %></td></tr>
+    </tbody></table>
+    <% } %>
+  </td></tr></tbody></table>

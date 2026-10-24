@@ -1,0 +1,9 @@
+<h3>Rohstoffe schicken → <%= target.name %> (<%= target.x %>|<%= target.y %>)</h3>
+<p>Händler: <b><%= free %></b> / <%= total %> (je <%= number(capacity) %> Rohstoffe)</p>
+<form id="market-send-form" action="#" method="post">
+  <input type="hidden" name="target" value="<%= target.id %>" />
+  <table class="vis"><tbody>
+    <% for (const r of physicalRes) { %><tr><td><span class="icon header <%= r %>"></span> <%= t('game.' + r) %></td><td><input type="text" name="<%= r %>" size="7" /> <span class="twl-small">(<%= Math.floor(village[r]) %>)</span></td></tr><% } %>
+    <tr><td></td><td><input type="submit" class="btn" value="OK" /></td></tr>
+  </tbody></table>
+</form>

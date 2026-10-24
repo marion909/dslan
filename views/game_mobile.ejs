@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<%- include('partials/game_head') %>
+</head>
+<body id="ds_body" class="twl-mobile">
+<script type="text/javascript" src="/twl-notify.js"></script>
+<% const lnk = (screenName, extra = '') => `/game.php?village=${vid}&amp;screen=${screenName}${extra}`; %>
+
+<header id="m_top">
+  <button type="button" id="m_menu_btn" aria-label="Menü" onclick="Mobile.drawer(true)">☰</button>
+  <div id="m_village">
+    <a href="<%- lnk('overview') %>" class="m-vname"><%= village.name %></a>
+    <span class="m-vcoord">(<%= village.x %>|<%= village.y %>) K<%= Math.floor(village.y / 100) %><%= Math.floor(village.x / 100) %></span>
+  </div>
+  <% if (gameData.player.villages > 1) { %>
+  <a id="village_switch_left" class="m-btn village_switch_link" href="game.php?<%- switchLink('p') %>" aria-label="Voriges Dorf">‹</a>
+  <a id="village_switch_right" class="m-btn village_switch_link" href="game.php?<%- switchLink('n') %>" aria-label="Nächstes Dorf">›</a>
+  <% } %>
+  <% if (villageMenu) { %><button type="button" class="m-btn" aria-label="Dörfer" onclick="Mobile.sheet(true)">▾</button><% } %>
+</header>
+
+<div id="m_res">
+  <% for (const res of physicalRes) { const v = gameData.village; const cls = v[res] >= v.storage_max ? 'warn' : (v[res] >= v.storage_max * 0.9 ? 'warn_90' : 'res'); %>
+  <a href="<%- lnk(res) %>" title="<%= t('game.' + res) %>"><span class="icon header <%= res %>"></span><span id="<%= res %>" title="<%= Math.round(v[res + '_prod'] * 3600) %>" class="<%= cls %>"><%= v[res] %></span></a>
+  <% } %>
+  <a href="<%- lnk('storage') %>"><span class="icon header ressources"></span><span id="storage"><%= gameData.village.storage_max %></span></a>
+  <a href="<%- lnk('farm') %>"><span class="icon header population"></span><span><span id="pop_current_label"><%= gameData.village.pop %></span>/<span id="pop_max_label"><%= gameData.village.pop_max %></span></span></a>
+</div>
+
+<nav id="m_quick">
+  <% for (const [bid, screenName, label] of quickbar) { %><a href="/game.php?village=<%= vid %>&amp;screen=<%- screenName.replace(/&/g, '&amp;') %>"><% if (bid) { %><img src="/graphic/buildings/<%= bid %>.png" alt="" /><% } %><%= label %></a><% } %>
+</nav>
+
+<% for (const n of (notices || [])) { %>
+<div class="twl-notice"><span class="twl-notice-icon">i</span><%- n %><a class="twl-notice-close" href="#" onclick="$(this).parent().remove(); return false;">&times;</a></div>
+<% } %>
+
+<main id="m_content">
+  <table class="main" id="m_main_table"><tr><td id="content_value">
+    <% if (typeof error !== 'undefined' && error) { %><div class="error_box"><%= error %></div><% } %>
+    <div id="content_point"></div>
+    <%- content %>
+  </td></tr></table>
+  <p class="server_info"><%= t('game.servertime') %> <span id="serverTime"><%= clockNow %></span></p>
+</main>
+
+<nav id="m_tabs">
+  <a href="<%- lnk('overview') %>"<%- gameData.screen === 'overview' ? ' class="on"' : '' %>><span class="icon header village"></span>Übersicht</a>
+  <a href="<%- lnk('map') %>"<%- gameData.screen === 'map' ? ' class="on"' : '' %>><span class="icon header map"></span>Karte</a>
+  <a href="<%- lnk('report') %>"<%- gameData.screen === 'report' ? ' class="on"' : '' %>><span class="icon header new_report"></span>Berichte<% if (gameData.player.new_report) { %><b class="m-badge"><%= gameData.player.new_report %></b><% } %></a>
+  <a href="<%- lnk('mail') %>"<%- gameData.screen === 'mail' ? ' class="on"' : '' %>><span class="icon header new_mail"></span>Post<% if (gameData.player.new_igm) { %><b class="m-badge"><%= gameData.player.new_igm %></b><% } %></a>
+  <a href="#" onclick="Mobile.drawer(true); return false;"><span class="icon header arr_down"></span>Menü</a>
+</nav>
+
+<div id="m_drawer" aria-hidden="true">
+  <div class="m-shade" onclick="Mobile.drawer(false)"></div>
+  <aside>
+    <div class="m-drawer-head"><b><%= gameData.player.name %></b> <span class="twl-small"><%= world.name %></span><button type="button" onclick="Mobile.drawer(false)" aria-label="Schließen">×</button></div>
+    <div class="m-drawer-sub"><a href="<%- lnk('ranking') %>"><%= gameData.player.rank_formatted %>. Platz · <%= gameData.player.points_formatted %> <%= t('game.menu.ranking.points') %></a><% if (gameData.player.pp !== undefined) { %> · <a href="<%- lnk('premium') %>"><%= gameData.player.pp %> PP</a><% } %></div>
+    <% const group = (title, href, items) => { %>
+    <details class="m-group"><summary><%- title %></summary>
+      <a class="m-all" href="<%- href %>">Öffnen</a>
+      <% for (const item of items) { %><a href="<%- item.href %>"><%= item.text %></a><% } %>
+    </details>
+    <% }; %>
+    <% for (const m of menu) {
+         const title = (menuIcons[m.key] ? `<span class="icon header ${menuIcons[m.key]}"></span> ` : '') + esc(m.key === 'premium' ? gameData.player.pp + ' PP' : m.titleKey ? t(m.titleKey) : t(`game.menu.${m.key}.title`));
+         const items = (m.items || []).map((item) => ({ text: t(item.label), href: `/game.php?village=${vid}&amp;screen=${item.screen || m.screen}${item.mode ? '&amp;mode=' + item.mode : ''}` }));
+         group(title, lnk(m.screen), items);
+       } %>
+    <% group(esc(t('game.menu.ranking.title')), lnk('ranking'), menu.rankingItems.map((item) => ({ text: t(item.label), href: lnk('ranking', `&amp;mode=${item.mode}`) }))); %>
+    <div class="m-links">
+      <a href="<%- lnk('notes') %>">Notizblock</a><a href="<%- lnk('quests') %>">Aufgaben</a><a href="<%- lnk('help') %>">Hilfe</a>
+      <a href="<%- lnk('settings', '&amp;mode=world') %>">Welteinstellungen</a>
+      <% if (isAdmin) { %><a href="/admin/" target="_blank">Admin</a><% } %>
+      <a href="/page/view?mode=desktop&amp;back=<%= encodeURIComponent(`/game.php?village=${vid}&screen=${gameData.screen}`) %>">Desktop-Ansicht</a>
+      <a href="/page/logout" target="_top"><%= t('game.menu.logout') %></a>
+    </div>
+  </aside>
+</div>
+
+<% if (villageMenu) { %>
+<div id="m_sheet" aria-hidden="true">
+  <div class="m-shade" onclick="Mobile.sheet(false)"></div>
+  <div class="m-sheet-body">
+    <div class="m-drawer-head"><b>Dörfer wechseln</b><button type="button" onclick="Mobile.sheet(false)" aria-label="Schließen">×</button></div>
+    <h5>Alle Dörfer</h5>
+    <% for (const v of villageMenu.all) { %><a href="<%- villageMenu.link(v.id) %>"<%- v.id === vid ? ' class="twl-current"' : '' %>><%= v.name %> <span class="twl-small">(<%= v.x %>|<%= v.y %>)</span></a><% } %>
+    <% for (const g of villageMenu.groups) { %><h5><%= g.name %></h5>
+      <% for (const v of g.villages) { %><a href="<%- villageMenu.link(v.id) %>"<%- v.id === vid ? ' class="twl-current"' : '' %>><%= v.name %> <span class="twl-small">(<%= v.x %>|<%= v.y %>)</span></a><% } %>
+    <% } %>
+  </div>
+</div>
+<% } %>
+
+<span id="menu_row2_village" style="display:none"></span>
+<script type="text/javascript" src="/mobile.js"></script>
+<%- include('partials/game_foot') %>
+</body>
+</html>

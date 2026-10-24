@@ -1,0 +1,20 @@
+<table class="vis tall" id="tech_list" style="width: 100%"><tbody>
+  <tr>
+    <th><%= t('buildingSmith.technology') %></th>
+    <th colspan="3"><%= t('buildingSmith.costs') %></th>
+    <th><%= t('game.unit.researchTime') %></th>
+    <th><%= t('buildingSmith.research') %></th>
+  </tr>
+  <% for (const u of techs) { %>
+  <tr>
+    <td><img src="/graphic/unit/recruit/<%= u.state === true || u.state === 'done' ? '' : 'grey/' %><%= u.id %>.png" style="vertical-align: middle" alt=""> &nbsp;<%= unitName(u.id, 1) %><% if (u.state === 'done') { %> (1)<% } %></td>
+    <% if (u.state === true) { %>
+    <% for (const r of physicalRes) { %><td><span class="nowrap<%= village[r] < u.cost[r] ? ' warn' : '' %>" id="<%= u.id %>_cost_<%= r %>"><span class="icon header <%= r %>"></span> <%= u.cost[r] %></span></td><% } %>
+    <td><span class="icon header time"></span> <%= duration(u.cost.time) %></td>
+    <td><a class="btn btn-research" href="#" onclick="return BuildingSmith.research('<%= u.id %>');"><%= t('building.level', { x: 1 }) %></a></td>
+    <% } else { %>
+    <td colspan="5" class="inactive"><%= u.message %></td>
+    <% } %>
+  </tr>
+  <% } %>
+</tbody></table>
