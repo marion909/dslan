@@ -1,4 +1,29 @@
 <h2>Welt</h2>
+<h3>Weltregeln</h3>
+<p>Diese Regeln gelten sofort für das laufende Spiel (bereits laufende Befehle und Aufträge behalten ihre Zeiten). Geänderte Werte sind markiert; die Werte der Weltdatei stehen in Klammern.</p>
+<form method="post" action="/admin/world/rules">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table>
+    <% for (const r of rules) { const v = current[r.key]; const changed = v !== original[r.key]; %>
+    <tr<%- changed ? ' style="background:#fff3cf"' : '' %>>
+      <th><%= r.label %></th>
+      <td>
+        <% if (r.type === 'bool') { %><label><input type="checkbox" name="<%= r.key %>" value="1"<%= v ? ' checked' : '' %> /> aktiv</label>
+        <% } else if (r.type === 'select') { %><select name="<%= r.key %>"><% for (const [val, text] of r.options) { %><option value="<%= val %>"<%= v === val ? ' selected' : '' %>><%= text %></option><% } %></select>
+        <% } else if (r.type === 'textarea') { %><textarea name="<%= r.key %>" rows="3" cols="40" maxlength="<%= r.max %>"><%= v %></textarea>
+        <% } else if (r.type === 'number') { %><input type="number" name="<%= r.key %>" value="<%= v %>" min="<%= r.min %>" max="<%= r.max %>" step="<%= r.step || 1 %>" style="width: 110px" />
+        <% } else if (r.type === 'time') { %><input type="time" name="<%= r.key %>" value="<%= v %>" />
+        <% } else { %><input type="text" name="<%= r.key %>" value="<%= v %>" maxlength="<%= r.max %>" size="30" /><% } %>
+        <% if (changed) { %><small>(Weltdatei: <%= typeof original[r.key] === 'boolean' ? (original[r.key] ? 'aktiv' : 'aus') : original[r.key] %>)</small><% } %>
+        <% if (r.help) { %><br /><small><%= r.help %></small><% } %>
+      </td>
+    </tr>
+    <% } %>
+  </table>
+  <button>Weltregeln speichern</button>
+</form>
+<form method="post" action="/admin/world/rules/reset" style="margin-top: 6px" onsubmit="return confirm('Alle Weltregeln auf die Werte der Weltdatei zurücksetzen?');"><input type="hidden" name="h" value="<%= csrf %>" /><button>Auf Weltdatei-Werte zurücksetzen</button></form>
+<p><small>Geschwindigkeits-Faktor und Registrierung stehen unter „Einstellungen“. Kirche, Kartengröße und Gebäude/Einheiten-Werte bleiben in der Weltdatei, weil sie beim Start festgelegt werden.</small></p>
 <h3>Automatische Backups</h3>
 <form method="post" action="/admin/backup/settings">
   <input type="hidden" name="h" value="<%= csrf %>" />

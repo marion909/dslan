@@ -220,7 +220,12 @@ function install(app, db) {
   });
 
   // ---- world ----
-  router.get('/world', (req, res) => render(res, 'world', { s: settings.load(db), backups: backup.list(), dir: backup.DIR }));
+  router.get('/world', (req, res) => render(res, 'world', { s: settings.load(db), backups: backup.list(), dir: backup.DIR, rules: settings.WORLD_RULES, current: cfg.world, original: settings.ORIGINAL }));
+  router.post('/world/rules', (req, res) => {
+    const rejected = settings.setWorldRules(db, req.body);
+    return back(res, 'world', rejected.length ? `Gespeichert, aber ungültig und übersprungen: ${rejected.join(', ')}.` : 'Weltregeln gespeichert – sie gelten sofort.');
+  });
+  router.post('/world/rules/reset', (req, res) => { settings.resetWorldRules(db); return back(res, 'world', 'Weltregeln auf die Werte der Weltdatei zurückgesetzt.'); });
   router.post('/world/reset', (req, res) => {
     if (req.body.confirm !== 'ZURÜCKSETZEN') return back(res, 'world', 'Zur Bestätigung bitte ZURÜCKSETZEN eintippen.');
     // Everything except the admin accounts: villages, tribes, messages, reports, orders.

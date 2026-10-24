@@ -760,3 +760,29 @@ test('admin can refill removed barbarian villages', async () => {
     assert.ok(total() > after, 'refilled');
   } finally { s.close(); }
 });
+
+test('admin can change world rules live and reset them', async () => {
+  const s = await start();
+  const cfg = require('../src/config');
+  const before = { ...cfg.world };
+  try {
+    const admin = await s.client().register('alice');
+    const post = (path, form) => admin.raw(path, { method: 'POST', form: { h: admin.csrf, ...form } });
+    const form = { name: 'Testwelt', description: 'Hallo', beginnerProtection: '60', morale: 'none', nightBonus: '3', nightStart: '21:00', nightEnd: '07:30', basicDefense: '20', unitsSpeed: '1', noblemanMinDecrease: '20', noblemanMaxDecrease: '35', loyaltyIncrease: '1', tribeMemberLimit: '15', knightItemProgress: '3', attackSelf: '1', destroyBuildings: '1', knightActive: '1' };
+    assert.equal((await post('/admin/world/rules', form)).status, 302);
+    assert.equal(cfg.world.name, 'Testwelt');
+    assert.equal(cfg.world.morale, 'none');
+    assert.equal(cfg.world.nightBonus, 3);
+    assert.equal(cfg.PROTECTION_SECONDS, (60 * 60) / cfg.SPEED_MULT, 'protection follows the rule');
+    has(await (await admin.raw('/admin/world')).text(), /Testwelt/, 'shown on the page');
+    // an unchecked box switches the rule off; garbage keeps the old value
+    const { attackSelf: _off, ...withoutBox } = form;
+    await post('/admin/world/rules', { ...withoutBox, nightBonus: 'abc' });
+    assert.equal(cfg.world.attackSelf, false);
+    assert.equal(cfg.world.nightBonus, 3, 'invalid number ignored');
+    await post('/admin/world/rules/reset', {});
+    assert.equal(cfg.world.name, before.name);
+    assert.equal(cfg.world.morale, before.morale);
+    assert.equal(cfg.world.attackSelf, before.attackSelf);
+  } finally { Object.assign(cfg.world, before); require('../src/settings').apply(s.db); s.close(); }
+});
