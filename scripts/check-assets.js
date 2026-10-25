@@ -8,7 +8,7 @@ const ROOT = path.join(__dirname, '..');
 const MANIFEST = path.join(ROOT, 'config', 'assets-manifest.txt');
 
 function walk(dir, base = '') {
-  return fs.readdirSync(path.join(dir, base), { withFileTypes: true }).flatMap((e) => {
+  return fs.readdirSync(path.join(dir, base), { withFileTypes: true }).filter((e) => e.name !== '.DS_Store').flatMap((e) => {
     const rel = path.posix.join(base, e.name);
     return e.isDirectory() ? walk(dir, rel) : [rel];
   });
@@ -16,7 +16,7 @@ function walk(dir, base = '') {
 
 function missing() {
   if (!fs.existsSync(MANIFEST)) return [];
-  const expected = fs.readFileSync(MANIFEST, 'utf8').split('\n').filter(Boolean);
+  const expected = fs.readFileSync(MANIFEST, 'utf8').split('\n').filter((f) => f && !f.endsWith('.DS_Store'));
   return expected.filter((f) => !fs.existsSync(path.join(ROOT, 'public', f)));
 }
 

@@ -1,4 +1,3 @@
-.DS_Store
 apple-touch-icon.png
 css/game.css
 css/home.css
@@ -13,7 +12,6 @@ fonts/glyphicons-halflings-regular.svg
 fonts/glyphicons-halflings-regular.ttf
 fonts/glyphicons-halflings-regular.woff
 fonts/glyphicons-halflings-regular.woff2
-graphic/.DS_Store
 graphic/ally_forum.png
 graphic/ally_rights/diplomacy.png
 graphic/ally_rights/forum_mod.png
