@@ -4,8 +4,25 @@
   <table>
     <tr><th>Geschwindigkeits-Faktor</th><td><input name="speedMultiplier" value="<%= s.speedMultiplier %>" size="6" /> <small>multipliziert die Weltgeschwindigkeit (<%= world.speed / 1000 %>x). Wirkt sofort auf neue Aufträge und Produktion; auch die Dauer des Angriffsschutzes ändert sich.</small></td></tr>
     <tr><th>Registrierung</th><td><select name="registration"><option value="open"<%= s.registration !== 'closed' ? ' selected' : '' %>>offen</option><option value="closed"<%= s.registration === 'closed' ? ' selected' : '' %>>geschlossen</option></select></td></tr>
+    <tr><th>Inaktive Spieler entfernen</th><td><input name="inactiveDays" type="number" min="0" max="365" value="<%= s.inactiveDays %>" style="width: 80px" /> Tage <small>0 = aus. Wer so lange nicht online war (und keinen Urlaub eingetragen hat), wird gelöscht; seine Dörfer werden zu Barbarendörfern. Geprüft wird stündlich. Admins und Bots sind ausgenommen.</small></td></tr>
   </table>
   <button>Speichern</button>
+</form>
+<% if (candidates.length) { %>
+<h3>Bald inaktiv</h3>
+<table>
+  <tr><th>Spieler</th><th>Tage offline</th></tr>
+  <% for (const c of candidates) { %><tr><td><%= c.name %></td><td><%= c.away.toFixed(1) %> von <%= s.inactiveDays %></td></tr><% } %>
+</table>
+<% } %>
+<form method="post" action="/admin/settings/sweep" style="margin-bottom: 14px" onsubmit="return confirm('Jetzt alle Spieler entfernen, die länger als eingestellt offline waren?');"><input type="hidden" name="h" value="<%= csrf %>" /><button class="danger">Inaktive jetzt prüfen und entfernen</button></form>
+<h3>Ankündigung an alle Spieler</h3>
+<p>Erscheint als Hinweis oben auf jeder Spielseite, bis du sie entfernst.</p>
+<form method="post" action="/admin/settings/announcement">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <textarea name="text" rows="3" style="width: 100%; max-width: 560px" maxlength="500" placeholder="z. B. Server-Neustart heute um 22 Uhr"><%= s.announcement %></textarea><br />
+  <label><input type="checkbox" name="mail" value="1" /> zusätzlich als Nachricht an alle Spieler senden (und per Push)</label><br />
+  <button>Ankündigung speichern</button> <small>Leer speichern = Ankündigung entfernen.</small>
 </form>
 <h3>Weltkonfiguration (Datei <code>config/worlds/world/world.json</code>)</h3>
 <table>

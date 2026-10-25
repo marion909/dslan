@@ -3,7 +3,7 @@ const cfg = require('./config');
 
 // Settings an admin can change while the server runs; stored in the database and applied to the shared config.
 const DEFAULTS = {
-  speedMultiplier: cfg.SPEED_MULT, registration: 'open',
+  speedMultiplier: cfg.SPEED_MULT, registration: 'open', paused: '0', pausedAt: '0', announcement: '', inactiveDays: '0',
   backupEnabled: '1', backupHours: '24', backupKeep: '7',
   botCount: '0', botActive: '1', botInterval: '30', botAggression: '3', botAttackPlayers: '1', botMark: '0',
 };
@@ -57,6 +57,8 @@ function apply(db) {
     const value = stored === undefined ? undefined : coerce(rule, JSON.parse(stored));
     cfg.world[rule.key] = value === undefined || value === null ? ORIGINAL[rule.key] : value;
   }
+  cfg.PAUSED = s.paused === '1';
+  cfg.ANNOUNCEMENT = String(s.announcement || '');
   cfg.SPEED_MULT = mult;
   cfg.SPEED = (cfg.world.speed / 1000) * mult;
   cfg.PROTECTION_SECONDS = (cfg.world.beginnerProtection * 60) / mult;
@@ -90,4 +92,7 @@ function resetWorldRules(db) {
 
 const registrationOpen = (db) => load(db).registration !== 'closed';
 
-module.exports = { load, apply, set, registrationOpen, WORLD_RULES, ORIGINAL, setWorldRules, resetWorldRules };
+const cfgPaused = () => !!cfg.PAUSED;
+const inactiveDays = (db) => Math.max(0, Number(load(db).inactiveDays) || 0);
+
+module.exports = { cfgPaused, inactiveDays, load, apply, set, registrationOpen, WORLD_RULES, ORIGINAL, setWorldRules, resetWorldRules };

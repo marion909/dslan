@@ -1,6 +1,7 @@
 'use strict';
 const path = require('node:path');
 const express = require('express');
+const push = require('./push');
 const cfg = require('./config');
 const auth = require('./auth');
 const village = require('./game/village');
@@ -78,6 +79,7 @@ function createApp(db, opts = {}) {
       return res.json({ error: 'Wrong user name or password.' });
     }
     db.prepare('INSERT INTO login_log (user_id, time, ip) VALUES (?,?,?)').run(user.id, Math.floor(Date.now() / 1000), String(req.ip));
+    db.prepare('UPDATE user SET last_seen = ? WHERE id = ?').run(Math.floor(Date.now() / 1000), user.id);
     setCookie(res, req, auth.createSession(db, user.id));
     res.json({ ok: true });
   });
@@ -91,6 +93,7 @@ function createApp(db, opts = {}) {
   const requireUser = (req, res, next) => (req.user ? next() : res.status(401).json({ error: 'Not logged in.' }));
 
   function ownVillage(req, res, next) {
+    if (cfg.PAUSED) return res.status(503).json({ error: 'The world is paused.' });
     const v = db.prepare('SELECT * FROM village WHERE id = ? AND user_id = ?').get(Number(req.query.village || req.body.village), req.user.id);
     if (!v) return res.status(404).json({ error: 'No such village.' });
     req.village = v;
@@ -147,6 +150,7 @@ function createApp(db, opts = {}) {
   });
 
   settings.apply(db);
+  push.install(app, db, { csrfOk: (req) => auth.checkCsrf(db, req.sid, req.query.h || (req.body && req.body.h)) });
   admin.install(app, db);
   pages.install(app, db);
   app.use(express.static(path.join(cfg.ROOT, 'public')));

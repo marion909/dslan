@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+  <title>Pause - <%= world.name %></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="30" />
+  <link rel="stylesheet" type="text/css" href="/home.css" />
+</head>
+<body id="home">
+<div class="hm-bg"></div>
+<main class="hm-main" style="grid-template-columns: minmax(0, 520px); justify-content: center">
+  <section class="hm-card"><div class="hm-pane" style="text-align: center">
+    <h2 style="margin-top: 0">⏸ <%= world.name %> ist pausiert</h2>
+    <p><%= message %></p>
+    <p class="twl-small">Die Seite lädt sich automatisch neu.</p>
+    <% if (isAdmin) { %><a class="hm-btn" href="/admin/world">Zum Admin-Bereich (Welt fortsetzen)</a><% } %>
+    <a class="hm-btn" href="/page/logout">Abmelden</a>
+  </div></section>
+</main>
+</body>
+</html>

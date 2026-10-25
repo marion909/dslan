@@ -23,6 +23,7 @@
   <span style="margin-left:auto"><a href="/page/play">Zum Spiel</a></span>
 </header>
 <main>
+  <% if (paused) { %><div class="flash" style="border-color:var(--warn); color:var(--warn)"><b>⏸ Die Welt ist pausiert.</b> Spieler sehen eine Pause-Seite. <a href="/admin/world">Zur Welt-Seite</a></div><% } %>
   <% if (flash) { %><div class="flash"><%= flash %></div><% } %>
   <%- body %>
 </main>

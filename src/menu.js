@@ -30,7 +30,7 @@ module.exports = [
   { key: 'premium', screen: 'premium', titleKey: 'game.menu.premium' },
   { key: 'settings', screen: 'settings', items: [
     it('game.menu.settings.profile', 'profile'), it('game.menu.settings.settings', 'settings'), it('game.menu.settings.changePasswd', 'change_passwd'),
-    it('game.menu.settings.quickbar', 'quickbar'), it('game.menu.settings.logins', 'logins'), it('game.menu.settings.block', 'block'), it('game.menu.settings.sitter', 'sitter'),
+    it('game.menu.settings.quickbar', 'quickbar'), it('game.menu.settings.logins', 'logins'), it('game.menu.settings.block', 'block'), it('game.menu.settings.sitter', 'sitter'), it('game.menu.settings.vacation', 'vacation'),
     it('game.menu.settings.delete', 'delete'),
   ] },
 ];

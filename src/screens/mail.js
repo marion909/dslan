@@ -1,5 +1,6 @@
 'use strict';
 const { t, dateText } = require('../view');
+const push = require('../push');
 
 const MODES = ['in', 'out', 'new', 'mass_out', 'address', 'folder'];
 
@@ -10,7 +11,10 @@ module.exports = ({ db, render, csrfOk }) => {
   function send(fromUser, recipients, subject, body) {
     const now = Math.floor(Date.now() / 1000);
     const insert = db.prepare('INSERT INTO message (from_id, to_id, subject, body, time) VALUES (?,?,?,?,?)');
-    for (const r of recipients) insert.run(fromUser.id, r.id, subject, body, now);
+    for (const r of recipients) {
+      insert.run(fromUser.id, r.id, subject, body, now);
+      push.tell(db, r.id, { kind: 'message', title: `Nachricht von ${fromUser.name}`, body: subject, url: '/page/play?screen=mail' });
+    }
   }
 
   return {

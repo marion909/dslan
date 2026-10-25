@@ -2,11 +2,12 @@
 <% if (temp) { %><div class="flash">Neues Passwort für <b><%= who %></b>: <code><%= temp %></code> – bitte jetzt notieren, es wird nicht erneut angezeigt.</div><% } %>
 <form method="get"><input name="q" value="<%= q %>" placeholder="Name suchen" /> <button>Suchen</button></form>
 <table>
-  <tr><th>ID</th><th>Name</th><th>Stamm</th><th>Dörfer</th><th>Punkte</th><th>PP</th><th>Registriert</th><th>Status</th><th>Aktionen</th></tr>
+  <tr><th>ID</th><th>Name</th><th>Stamm</th><th>Dörfer</th><th>Punkte</th><th>PP</th><th>Registriert</th><th>Zuletzt online</th><th>Status</th><th>Aktionen</th></tr>
   <% for (const u of rows) { %>
   <tr>
     <td><%= u.id %></td><td><%= u.name %><%= u.is_admin ? ' ★' : '' %></td><td><%= u.tag || '' %></td><td><%= u.villages %></td><td><%= number(u.points) %></td><td><%= u.pp %></td><td><%= dateText(u.created_at) %></td>
-    <td><%= u.banned ? 'gesperrt' : 'aktiv' %></td>
+    <td><%= u.last_seen ? dateText(u.last_seen) : '–' %></td>
+    <td><%= u.banned ? 'gesperrt' : 'aktiv' %><%= u.vacation_until > Date.now() / 1000 ? ' · Urlaub' : '' %></td>
     <td>
       <form class="inline" method="post" action="/admin/players/<%= u.id %>/pp"><input type="hidden" name="h" value="<%= csrf %>" /><input name="amount" size="4" placeholder="±PP" /><button>PP</button></form>
       <% for (const [action, label, danger, confirm] of [[u.banned ? 'unban' : 'ban', u.banned ? 'Entsperren' : 'Sperren', false, ''], ['password', 'Passwort zurücksetzen', false, 'Neues Passwort erzeugen?'], ['admin', u.is_admin ? 'Admin entziehen' : 'Zum Admin', false, ''], ['delete', 'Löschen', true, 'Spieler wirklich löschen?']]) { %>

@@ -16,6 +16,20 @@
   <% for (const l of logins) { %><tr><td><%= dateText(l.time) %></td><td><%= l.ip %></td></tr><% } %>
   <% if (!logins.length) { %><tr><td colspan="2" class="inactive">Noch keine Anmeldungen aufgezeichnet.</td></tr><% } %>
 </tbody></table>
+<% } else if (mode === 'vacation') { %>
+<form method="post" action="/game.php?village=<%= vid %>&amp;screen=settings&amp;mode=vacation">
+  <input type="hidden" name="h" value="<%= csrf %>" />
+  <table class="vis" width="100%"><tbody>
+    <tr><th>Urlaub</th></tr>
+    <tr><td>
+      <% if (vacationUntil > now) { %><p>Urlaub aktiv bis <b><%= dateText(vacationUntil) %></b>.</p><% } %>
+      <p>Wenn du länger nicht spielen kannst, trage hier ein, wie viele Tage (höchstens <%= maxVacation %>) dein Konto <b>nicht wegen Inaktivität gelöscht</b> wird.
+      Das ist <b>kein Schutz</b> vor Angriffen – bitte bitte einen Sitter, auf deine Dörfer aufzupassen.</p>
+      Tage: <input type="number" name="days" min="0" max="<%= maxVacation %>" value="<%= vacationUntil > now ? Math.ceil((vacationUntil - now) / 86400) : 7 %>" style="width: 70px" />
+      <input type="submit" class="btn" value="Speichern" /> <span class="twl-small">0 beendet den Urlaub.</span>
+    </td></tr>
+  </tbody></table>
+</form>
 <% } else if (mode === 'sitter') { %>
 <table class="vis" width="100%"><tbody>
   <tr><th>Deine Sitter</th><th></th></tr>
@@ -86,8 +100,17 @@
       <label><input type="checkbox" name="report" value="1"<%= prefs.report ? ' checked' : '' %> /> Neuer Bericht</label>
     </td></tr>
     <tr><td></td><td><input type="submit" class="btn" value="Speichern" /></td></tr>
+    <tr><td valign="top">Push aufs Handy</td><td id="push-box">
+      <p id="push-status" class="twl-small">Prüfe …</p>
+      <button type="button" class="btn" id="push-on" style="display:none">Push auf diesem Gerät aktivieren</button>
+      <button type="button" class="btn" id="push-off" style="display:none">Push auf diesem Gerät ausschalten</button>
+      <button type="button" class="btn" id="push-test" style="display:none">Testnachricht senden</button>
+      <p class="twl-small">Du bekommst die oben gewählten Meldungen auch, wenn das Spiel geschlossen ist (nur solange du nicht gerade spielst). Das braucht eine HTTPS-Adresse.
+      <b>iPhone:</b> zuerst in Safari „Teilen → Zum Home-Bildschirm“ wählen und das Spiel von dort öffnen, dann hier aktivieren.</p>
+    </td></tr>
   </tbody></table>
-  <p class="twl-small">Die Meldungen erscheinen, solange eine Seite des Spiels geöffnet ist.</p>
+  <script src="/push-setup.js"></script>
+  <p class="twl-small">Meldungen im Browser erscheinen, solange eine Seite des Spiels geöffnet ist. Push funktioniert auch bei geschlossenem Spiel.</p>
   <% } else if (mode === 'recovery') { %>
   <table class="vis" width="100%"><tbody>
     <tr><th colspan="2">Passwort-Rettung</th></tr>

@@ -14,6 +14,9 @@ const relics = require('./game/relics');
 const bots = require('./game/bots');
 const backup = require('./backup');
 const world = require('./game/world');
+const players = require('./game/players');
+const pause = require('./game/pause');
+const push = require('./push');
 const view = require('./view');
 
 const PAGES = [['', 'Übersicht'], ['players', 'Spieler'], ['bots', 'Bots'], ['villages', 'Dörfer'], ['settings', 'Einstellungen'], ['world', 'Welt']];
@@ -29,6 +32,7 @@ function install(app, db) {
     res.locals.number = view.number;
     res.locals.dateText = view.dateText;
     res.locals.flash = req.query.msg || '';
+    res.locals.paused = cfg.PAUSED;
     next();
   });
   router.use((req, res, next) => {
@@ -100,8 +104,8 @@ function install(app, db) {
       }
       case 'delete':
         if (selfAction) return back(res, 'players', 'Du kannst dich nicht selbst löschen.');
-        db.prepare('DELETE FROM user WHERE id = ?').run(id);
-        ranking.invalidate();
+        players.removePlayer(db, id);
+        players.log(db, `Spieler gelöscht: ${user.name}`);
         return back(res, 'players', `${user.name} gelöscht (Dörfer werden zu Barbarendörfern).`);
       default: return back(res, 'players');
     }
@@ -193,11 +197,30 @@ function install(app, db) {
   });
 
   // ---- settings ----
-  router.get('/settings', (req, res) => render(res, 'settings', { s: settings.load(db), world: cfg.world }));
+  router.get('/settings', (req, res) => render(res, 'settings', { s: settings.load(db), world: cfg.world, candidates: players.inactiveCandidates(db, settings.inactiveDays(db)), maxVacation: players.MAX_VACATION_DAYS }));
+
+  // Announcement: shown as a banner on every game page; optionally also delivered as a message to every player.
+  router.post('/settings/announcement', (req, res) => {
+    const text = String(req.body.text || '').trim().slice(0, 500);
+    settings.set(db, 'announcement', text);
+    let sent = 0;
+    if (text && req.body.mail === '1') {
+      const insert = db.prepare('INSERT INTO message (from_id, to_id, subject, body, time) VALUES (?,?,?,?,?)');
+      const t = Math.floor(Date.now() / 1000);
+      for (const u of db.prepare('SELECT id FROM user WHERE is_bot = 0 AND id != ?').all(req.user.id)) { insert.run(req.user.id, u.id, 'Ankündigung', text, t); sent++; push.tell(db, u.id, { kind: 'message', title: 'Ankündigung', body: text.slice(0, 120), url: '/page/play?screen=mail' }); }
+    }
+    players.log(db, text ? `Ankündigung gesetzt${sent ? ` und an ${sent} Spieler gesendet` : ''}` : 'Ankündigung entfernt');
+    return back(res, 'settings', text ? `Ankündigung ist aktiv${sent ? `, ${sent} Nachrichten gesendet` : ''}.` : 'Ankündigung entfernt.');
+  });
+  router.post('/settings/sweep', (req, res) => {
+    const gone = players.sweepInactive(db, settings.inactiveDays(db));
+    return back(res, 'settings', gone.length ? `Entfernt: ${gone.join(', ')}` : 'Niemand war lange genug inaktiv (oder die Funktion ist aus).');
+  });
   router.post('/settings', (req, res) => {
     const mult = Number(req.body.speedMultiplier);
     if (mult >= 0.1 && mult <= 1000) settings.set(db, 'speedMultiplier', mult);
     settings.set(db, 'registration', req.body.registration === 'closed' ? 'closed' : 'open');
+    settings.set(db, 'inactiveDays', Math.min(365, Math.max(0, Math.floor(Number(req.body.inactiveDays)) || 0)));
     return back(res, 'settings', 'Gespeichert.');
   });
 
@@ -225,7 +248,9 @@ function install(app, db) {
   });
 
   // ---- world ----
-  router.get('/world', (req, res) => render(res, 'world', { s: settings.load(db), backups: backup.list(), dir: backup.DIR, rules: settings.WORLD_RULES, current: cfg.world, original: settings.ORIGINAL }));
+  router.post('/world/pause', (req, res) => back(res, 'world', pause.start(db) ? 'Die Welt ist pausiert. Spieler sehen eine Pause-Seite.' : 'Die Welt war schon pausiert.'));
+  router.post('/world/resume', (req, res) => back(res, 'world', pause.resume(db) ? 'Die Welt läuft weiter – alle Zeiten wurden um die Pause verschoben.' : 'Die Welt war nicht pausiert.'));
+  router.get('/world', (req, res) => render(res, 'world', { log: db.prepare('SELECT * FROM admin_log ORDER BY id DESC LIMIT 20').all(), pausedAt: Number(settings.load(db).pausedAt) || 0, s: settings.load(db), backups: backup.list(), dir: backup.DIR, rules: settings.WORLD_RULES, current: cfg.world, original: settings.ORIGINAL }));
   router.post('/world/rules', (req, res) => {
     const rejected = settings.setWorldRules(db, req.body);
     return back(res, 'world', rejected.length ? `Gespeichert, aber ungültig und übersprungen: ${rejected.join(', ')}.` : 'Weltregeln gespeichert – sie gelten sofort.');

@@ -27,6 +27,17 @@ Stammesforum mit Unterforen und Umfragen, Paladin-Umzug zwischen Dörfern mit St
 arbeitet im Account des Besitzers, kommt aber nicht an Einstellungen, Nachrichten, Premium und Stamm) und die Kirche
 (nur wenn `church` in der Weltkonfiguration aktiv ist: außerhalb eines Kirchenbereichs kämpfen Truppen nur mit 50 %).
 
+Betrieb und Komfort:
+- **Push aufs Handy** (Einstellungen → Benachrichtigungen): Meldungen bei Angriff, Nachricht und Bericht, auch bei geschlossenem Spiel
+  (Service Worker + Web-Push, nur über HTTPS; auf dem iPhone das Spiel erst zum Home-Bildschirm hinzufügen). Die VAPID-Schlüssel entstehen beim
+  ersten Aufruf und liegen in der Datenbank; optional `VAPID_PUBLIC`, `VAPID_PRIVATE`, `VAPID_SUBJECT` (z. B. `mailto:du@example.com`) per Umgebungsvariable.
+  Wer gerade spielt (Seite in den letzten 30 Sekunden geladen), bekommt keinen Push.
+- **Inaktive Spieler** (Admin → Einstellungen): nach X Tagen ohne Login wird das Konto entfernt, die Dörfer werden Barbarendörfer (0 = aus).
+  Spieler können unter Einstellungen → Urlaub bis zu 14 Tage einstellen, in denen sie nicht gelöscht werden (kein Schutz vor Angriffen).
+- **Ankündigung** (Admin → Einstellungen): Hinweis oben auf jeder Spielseite, optional zusätzlich als Nachricht und Push an alle.
+- **Welt pausieren** (Admin → Welt): Spieler sehen eine Pause-Seite; beim Fortsetzen werden alle Zeiten um die Pause verschoben (Märsche, Bauaufträge,
+  Produktion, Anfängerschutz). Das Protokoll auf der Welt-Seite hält Pausen, Ankündigungen und Löschungen fest.
+
 Bewusst nicht enthalten: Flaggen und „Geheimnis“ (im Original nur Platzhalter ohne Spezifikation), E-Mail-Banner, Chat und Social-Links.
 Alle Formeln, die nicht in den Konfigurationsdateien stehen (z. B. Kirchenradius, Bot-Verhalten), sind Schätzungen.
 

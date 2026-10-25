@@ -1,4 +1,12 @@
 <h2>Welt</h2>
+<h3>Pause</h3>
+<% if (paused) { %>
+<p><b>Die Welt ist pausiert</b> seit <%= dateText(Math.floor(pausedAt)) %>. Spieler sehen eine Pause-Seite; Befehle, Produktion, Bauaufträge und Bots stehen still.</p>
+<form method="post" action="/admin/world/resume"><input type="hidden" name="h" value="<%= csrf %>" /><button>Welt fortsetzen</button></form>
+<% } else { %>
+<p>Friert die Welt ein, zum Beispiel für Wartung. Beim Fortsetzen werden alle laufenden Zeiten (Märsche, Bauaufträge, Produktion, Anfängerschutz) um die Dauer der Pause verschoben, nichts geht verloren.</p>
+<form method="post" action="/admin/world/pause" onsubmit="return confirm('Die Welt jetzt für alle Spieler pausieren?');"><input type="hidden" name="h" value="<%= csrf %>" /><button class="danger">Welt pausieren</button></form>
+<% } %>
 <h3>Weltregeln</h3>
 <p>Diese Regeln gelten sofort für das laufende Spiel (bereits laufende Befehle und Aufträge behalten ihre Zeiten). Geänderte Werte sind markiert; die Werte der Weltdatei stehen in Klammern.</p>
 <form method="post" action="/admin/world/rules">
@@ -44,6 +52,12 @@
 <h3>Einmalige Sicherung herunterladen</h3>
 <p>Lädt eine konsistente Kopie der kompletten Datenbank herunter (Spieler, Dörfer, Berichte, Nachrichten). Das geht auch, während das Spiel läuft.</p>
 <form method="post" action="/admin/backup"><input type="hidden" name="h" value="<%= csrf %>" /><button>Backup herunterladen</button></form>
+<h3>Protokoll</h3>
+<table>
+  <tr><th>Zeit</th><th>Ereignis</th></tr>
+  <% for (const l of log) { %><tr><td><%= dateText(l.time) %></td><td><%= l.text %></td></tr><% } %>
+  <% if (!log.length) { %><tr><td colspan="2">Noch keine Einträge.</td></tr><% } %>
+</table>
 <h3>Zurücksetzen</h3>
 <p>Setzt die Welt komplett zurück: alle Spieler (außer Admins), Dörfer, Stämme, Nachrichten und Berichte werden gelöscht und die Barbarendörfer neu erzeugt. <b>Das kann nicht rückgängig gemacht werden.</b> Sichere vorher den Ordner <code>data/</code>.</p>
 <form method="post" action="/admin/world/reset" onsubmit="return confirm('Wirklich die ganze Welt zurücksetzen?');">

@@ -30,8 +30,8 @@ function lang(code = 'en') {
 
 // Strings the original referenced but never shipped in its language files.
 const FALLBACKS = {
-  en: { 'game.overview.cancel_build': 'Really cancel this construction order?', 'game.menu.settings.sitter': 'Sitter' },
-  de: { 'game.overview.cancel_build': 'Diesen Bauauftrag wirklich abbrechen?', 'game.menu.settings.sitter': 'Sitter' },
+  en: { 'game.overview.cancel_build': 'Really cancel this construction order?', 'game.menu.settings.sitter': 'Sitter', 'game.menu.settings.vacation': 'Urlaub' },
+  de: { 'game.overview.cancel_build': 'Diesen Bauauftrag wirklich abbrechen?', 'game.menu.settings.sitter': 'Sitter', 'game.menu.settings.vacation': 'Urlaub' },
 };
 
 // The language files nest sections ("game.menu" -> {...}), so a dotted key is

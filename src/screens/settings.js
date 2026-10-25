@@ -2,8 +2,9 @@
 const cfg = require('../config');
 const auth = require('../auth');
 const { t } = require('../view');
+const players = require('../game/players');
 
-const MODES = ['profile', 'settings', 'notify', 'quickbar', 'logins', 'block', 'change_passwd', 'recovery', 'sitter', 'delete', 'world'];
+const MODES = ['profile', 'settings', 'notify', 'quickbar', 'logins', 'block', 'change_passwd', 'recovery', 'sitter', 'vacation', 'delete', 'world'];
 
 // Readable names for the world settings players care about.
 const WORLD_ROWS = [
@@ -80,6 +81,9 @@ module.exports = ({ db, render, csrfOk }) => ({
           db.prepare('UPDATE user SET recovery_hash = ? WHERE id = ?').run(auth.hashPassword(auth.normalizeCode(code)), user.id);
           extraCode = code; ok = true; message = 'Dein neuer Wiederherstellungscode ist erstellt.';
         }
+      } else if (mode === 'vacation') {
+        const days = players.setVacation(db, user.id, req.body.days);
+        message = days ? `Urlaub eingetragen: Dein Konto wird ${days} Tage lang nicht wegen Inaktivität gelöscht.` : 'Urlaub beendet.'; ok = true;
       } else if (mode === 'sitter') {
         if (req.query.action === 'remove') db.prepare('DELETE FROM sitter WHERE owner_id = ? AND sitter_id = ?').run(user.id, Number(req.body.other));
         else {
@@ -98,7 +102,8 @@ module.exports = ({ db, render, csrfOk }) => ({
         if (!auth.verifyPassword(String(req.body.password || ''), user.password_hash) || req.body.confirm !== '1') {
           message = 'Passwort falsch oder Bestätigung fehlt.';
         } else {
-          db.prepare('DELETE FROM user WHERE id = ?').run(user.id);
+          players.removePlayer(db, user.id);
+          players.log(db, `Spieler hat sein Konto gelöscht: ${user.name}`);
           res.clearCookie('twsid');
           return res.redirect('/');
         }
@@ -107,6 +112,8 @@ module.exports = ({ db, render, csrfOk }) => ({
     if (req.query.saved) { message = 'Gespeichert.'; ok = true; }
     const fresh = db.prepare('SELECT * FROM user WHERE id = ?').get(req.user.id);
     const extra = { code: extraCode, hasCode: !!db.prepare('SELECT recovery_hash FROM user WHERE id = ?').get(req.user.id).recovery_hash };
+    if (mode === 'vacation') extra.vacationUntil = db.prepare('SELECT vacation_until FROM user WHERE id = ?').get(req.user.id).vacation_until;
+    if (mode === 'vacation') extra.maxVacation = players.MAX_VACATION_DAYS;
     if (mode === 'notify') extra.prefs = notifyPrefs(db.prepare('SELECT notify FROM user WHERE id = ?').get(req.user.id).notify);
     if (mode === 'world') {
       const w = cfg.world;

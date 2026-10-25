@@ -255,6 +255,19 @@ function open(file = path.join(ROOT, 'data', 'twlan.db')) {
       option_id INTEGER NOT NULL REFERENCES forum_poll_option(id) ON DELETE CASCADE,
       PRIMARY KEY (thread_id, user_id)
     );
+    CREATE TABLE IF NOT EXISTS push_sub (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS admin_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      time INTEGER NOT NULL,
+      text TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS sitter (
       owner_id INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
       sitter_id INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
@@ -345,6 +358,8 @@ function open(file = path.join(ROOT, 'data', 'twlan.db')) {
     );
   `);
 
+  ensureColumn(db, 'user', 'last_seen', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'user', 'vacation_until', 'INTEGER NOT NULL DEFAULT 0');
   ensureColumn(db, 'message', 'folder_id', 'INTEGER');
   ensureColumn(db, 'session', 'sit_for', 'INTEGER');
   ensureColumn(db, 'forum_thread', 'board_id', 'INTEGER');

@@ -57,6 +57,7 @@ function villageMenu(db, user, query) {
 function noticesFor(user, sitter, csrf) {
   const left = user.created_at + cfg.PROTECTION_SECONDS - Date.now() / 1000;
   const notes = left > 0 ? [`Angriffsschutz endet in <span class="timer">${duration(left)}</span>.`] : [];
+  if (cfg.ANNOUNCEMENT) notes.unshift(`<b>Ankündigung:</b> ${view.esc(cfg.ANNOUNCEMENT).replace(/\n/g, '<br>')}`);
   if (sitter) notes.unshift(`Du vertrittst <b>${view.esc(user.name)}</b> als Sitter. <a href="/page/sit?end=1&amp;h=${csrf}">Vertretung beenden</a>`);
   return notes;
 }
@@ -136,7 +137,8 @@ function install(app, db) {
   app.get('/page/play', (req, res) => {
     if (!req.user) return res.redirect('/');
     const v = db.prepare('SELECT id FROM village WHERE user_id = ? ORDER BY id LIMIT 1').get(req.user.id);
-    res.redirect(v ? `/game.php?village=${v.id}&screen=overview` : '/page/start');
+    const screen = /^[a-z_]{1,30}$/.test(String(req.query.screen || '')) ? req.query.screen : 'overview';
+    res.redirect(v ? `/game.php?village=${v.id}&screen=${screen}` : '/page/start');
   });
 
   // Forgotten password: name + recovery code + new password.
@@ -271,6 +273,14 @@ function install(app, db) {
   app.all('/game.php', async (req, res, next) => {
     try {
       if (!req.user) return res.redirect('/');
+
+      // While the world is paused nothing is playable (not even for admins: looking would settle production and queues).
+      const real = req.sitter || req.user;
+      if (cfg.PAUSED) {
+        const message = 'Die Welt ist gerade pausiert. Alles läuft nach der Pause genau dort weiter, wo es stehen geblieben ist.';
+        return req.query.ajaxaction !== undefined ? res.json({ error: message }) : res.status(503).render('paused', { message, world: cfg.world, isAdmin: !!real.is_admin });
+      }
+      if (real.last_seen < Date.now() / 1000 - 20) db.prepare('UPDATE user SET last_seen = ? WHERE id = ?').run(Math.floor(Date.now() / 1000), real.id);
 
       // village=n123 / p123 jump to the next / previous village of the player
       const hop = /^([np])(\d+)$/.exec(String(req.query.village || ''));

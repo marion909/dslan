@@ -7,6 +7,7 @@ const combat = require('./combat');
 const ranking = require('./ranking');
 const knight = require('./knight');
 const church = require('./church');
+const push = require('../push');
 const relics = require('./relics');
 const view = require('../view');
 const { transaction } = require('../db');
@@ -78,6 +79,13 @@ function send(db, { userId, fromId, toId, units: raw, type = 'attack' }) {
     const arrive = depart + travelSeconds(army, from, to);
     const info = db.prepare('INSERT INTO command (type, from_village, to_village, units, depart_at, arrive_at) VALUES (?,?,?,?,?,?)')
       .run(type, fromId, toId, JSON.stringify(army), depart, arrive);
+    if (type === 'attack' && to.user_id && to.user_id !== userId) {
+      const attacker = db.prepare('SELECT name FROM user WHERE id = ?').get(userId);
+      push.tell(db, to.user_id, {
+        kind: 'attack', title: 'Angriff auf dein Dorf!', url: `/game.php?village=${to.id}&screen=overview`,
+        body: `${attacker ? attacker.name : 'Jemand'} greift ${to.name} (${to.x}|${to.y}) an – Ankunft ${new Date(arrive * 1000).toLocaleTimeString('de-DE')}.`,
+      });
+    }
     return { ok: true, id: Number(info.lastInsertRowid), arriveAt: arrive };
   });
 }
@@ -89,6 +97,7 @@ function addReport(db, userId, { type, title, color, time, data }) {
   try { if (row && JSON.parse(row.report_filter).includes(type)) return; } catch { /* no filter */ }
   db.prepare('INSERT INTO report (user_id, type, title, color, time, data) VALUES (?,?,?,?,?,?)')
     .run(userId, type, title, color, time, JSON.stringify(data));
+  if (type !== 'trade') push.tell(db, userId, { kind: 'report', title: 'Neuer Bericht', body: title, url: '/page/play?screen=report' });
 }
 
 function setHome(db, villageId, army) {
